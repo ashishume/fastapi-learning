@@ -24,19 +24,6 @@ router = APIRouter()
     response_description="The created item",
 )
 def create_item(item: ItemCreate, db: Session = Depends(get_db)) -> ItemResponse:
-    """
-    Create a new item with the following information:
-
-    - **name**: The name of the item (required)
-    - **description**: A description of the item (optional)
-
-    Returns:
-        ItemResponse: The created item with its assigned ID
-
-    Raises:
-        HTTPException: 400 if item data is invalid
-        HTTPException: 500 if there's a database error
-    """
     try:
         logger.info(f"Creating new item: {item.name}")
 
@@ -81,19 +68,6 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)) -> ItemResponse
 def read_items(
     db: Session = Depends(get_db), skip: int = 0, limit: int = 100
 ) -> ItemListResponse:
-    """
-    Retrieve all items from the database.
-
-    Parameters:
-        - **skip**: Number of items to skip (for pagination)
-        - **limit**: Maximum number of items to return (default: 100, max: 100)
-
-    Returns:
-        ItemListResponse: A list containing all items
-
-    Raises:
-        HTTPException: 500 if there's a database error
-    """
     try:
         logger.info(f"Fetching items (skip={skip}, limit={limit})")
 
@@ -139,19 +113,6 @@ def read_items(
     response_description="The requested item",
 )
 def read_item(item_id: int, db: Session = Depends(get_db)) -> ItemResponse:
-    """
-    Retrieve a specific item by its ID.
-
-    Parameters:
-        - **item_id**: The ID of the item to retrieve
-
-    Returns:
-        ItemResponse: The requested item
-
-    Raises:
-        HTTPException: 404 if item not found
-        HTTPException: 500 if there's a database error
-    """
     try:
         logger.info(f"Fetching item with ID: {item_id}")
 
@@ -178,126 +139,6 @@ def read_item(item_id: int, db: Session = Depends(get_db)) -> ItemResponse:
         )
     except Exception as e:
         logger.error(f"Unexpected error while fetching item {item_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred",
-        )
-
-
-@router.put(
-    "/{item_id}",
-    response_model=ItemResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Update an item",
-    response_description="The updated item",
-)
-def update_item(
-    item_id: int, item: ItemCreate, db: Session = Depends(get_db)
-) -> ItemResponse:
-    """
-    Update an existing item.
-
-    Parameters:
-        - **item_id**: The ID of the item to update
-        - **name**: The new name of the item
-        - **description**: The new description of the item
-
-    Returns:
-        ItemResponse: The updated item
-
-    Raises:
-        HTTPException: 404 if item not found
-        HTTPException: 500 if there's a database error
-    """
-    try:
-        logger.info(f"Updating item with ID: {item_id}")
-
-        db_item = db.query(Item).filter(Item.id == item_id).first()
-
-        if db_item is None:
-            logger.warning(f"Item with ID {item_id} not found for update")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Item with ID {item_id} not found",
-            )
-
-        # Update item fields
-        db_item.name = item.name
-        db_item.description = item.description
-
-        db.commit()
-        db.refresh(db_item)
-
-        logger.info(f"Successfully updated item with ID: {item_id}")
-        return db_item
-
-    except HTTPException:
-        raise
-    except SQLAlchemyError as e:
-        db.rollback()
-        logger.error(f"Database error while updating item {item_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update item due to database error",
-        )
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Unexpected error while updating item {item_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred",
-        )
-
-
-@router.delete(
-    "/{item_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete an item",
-    response_description="Item successfully deleted",
-)
-def delete_item(item_id: int, db: Session = Depends(get_db)) -> None:
-    """
-    Delete an item by its ID.
-
-    Parameters:
-        - **item_id**: The ID of the item to delete
-
-    Returns:
-        None: 204 No Content on success
-
-    Raises:
-        HTTPException: 404 if item not found
-        HTTPException: 500 if there's a database error
-    """
-    try:
-        logger.info(f"Deleting item with ID: {item_id}")
-
-        db_item = db.query(Item).filter(Item.id == item_id).first()
-
-        if db_item is None:
-            logger.warning(f"Item with ID {item_id} not found for deletion")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Item with ID {item_id} not found",
-            )
-
-        db.delete(db_item)
-        db.commit()
-
-        logger.info(f"Successfully deleted item with ID: {item_id}")
-
-    except HTTPException:
-        raise
-    except SQLAlchemyError as e:
-        db.rollback()
-        logger.error(f"Database error while deleting item {item_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete item due to database error",
-        )
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Unexpected error while deleting item {item_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred",
