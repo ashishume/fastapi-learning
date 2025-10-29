@@ -8,15 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.database import Base, engine
 from api.endpoints import items
+from api.endpoints import categories
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("app.log")
-    ]
+    handlers=[logging.StreamHandler(), logging.FileHandler("app.log")],
 )
 
 logger = logging.getLogger(__name__)
@@ -26,7 +24,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """
     Lifespan context manager for startup and shutdown events.
-    
+
     This replaces the deprecated @app.on_event decorators.
     """
     # Startup
@@ -34,9 +32,9 @@ async def lifespan(app: FastAPI):
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down application...")
     logger.info("Closing database connections...")
@@ -64,23 +62,20 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(
-    items.router,
-    prefix="/items",
-    tags=["items"]
-)
+app.include_router(items.router, prefix="/items", tags=["items"])
+app.include_router(categories.router, prefix="/categories", tags=["categories"])
 
 
 @app.get("/", tags=["root"])
 async def root():
     """
     Root endpoint to check if the API is running.
-    
+
     Returns:
         dict: Welcome message and API status
     """
     return {
         "message": "Welcome to FastAPI Learning Project",
         "status": "running",
-        "docs": "/docs"
+        "docs": "/docs",
     }
