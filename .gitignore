@@ -128,8 +128,11 @@ dmypy.json
 *.swp
 *.swo
 *~
-.DS_Store
 
-# FastAPI specific
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
 *.db
 *.sqlite
