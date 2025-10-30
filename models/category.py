@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.orm import relationship
 from core.database import Base
 
 
@@ -9,3 +10,6 @@ class Category(Base):
     name = Column(String(100), index=True, nullable=False)
     slug = Column(String(50), index=True, nullable=False)
     description = Column(Text, nullable=True)
+
+    # Relationship to Item 
+    items = relationship("Item", back_populates="category")

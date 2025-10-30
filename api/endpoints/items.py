@@ -4,10 +4,11 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from core.database import get_db
+from models.category import Category
 from models.item import Item
 from schemas.item import ItemCreate, ItemListResponse, ItemResponse
 
@@ -26,8 +27,13 @@ router = APIRouter()
 def create_item(item: ItemCreate, db: Session = Depends(get_db)) -> ItemResponse:
     try:
         logger.info(f"Creating new item: {item.name}")
-
-        db_item = Item(name=item.name, description=item.description)
+        category=db.query(Category).filter(Category.id==item.category_id).first()
+        if category is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Category not found in the database",
+            )
+        db_item = Item(name=item.name, description=item.description, category_id=item.category_id)
         db.add(db_item)
         db.commit()
         db.refresh(db_item)
@@ -83,7 +89,7 @@ def read_items(
                 detail="Limit parameter must be between 1 and 100",
             )
 
-        item_list = db.query(Item).offset(skip).limit(limit).all()
+        item_list = db.query(Item).options(joinedload(Item.category)).offset(skip).limit(limit).all()
         logger.info(f"Successfully fetched {len(item_list)} items")
 
         return {"items": item_list}
@@ -116,7 +122,7 @@ def read_item(item_id: int, db: Session = Depends(get_db)) -> ItemResponse:
     try:
         logger.info(f"Fetching item with ID: {item_id}")
 
-        db_item = db.query(Item).filter(Item.id == item_id).first()
+        db_item = db.query(Item).options(joinedload(Item.category)).filter(Item.id == item_id).first()
 
         if db_item is None:
             logger.warning(f"Item with ID {item_id} not found")
