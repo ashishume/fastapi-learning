@@ -9,8 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.database import Base, engine
 from api.endpoints import items
 from api.endpoints import categories
-# Import models to register them with SQLAlchemy
-from models import Category, Item
+import models
 
 # Configure logging
 logging.basicConfig(

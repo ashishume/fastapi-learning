@@ -32,9 +32,7 @@ class ItemUpdate(BaseModel):
     name: Optional[str] = Field(
         None, min_length=1, max_length=100, description="The name of the item"
     )
-    description: Optional[str] = Field(
-        None, max_length=500, description="A description of the item"
-    )
+    description: Optional[str] = Field(None, description="A description of the item")
 
     category_id: Optional[int] = Field(None, description="The category ID of the item")
 

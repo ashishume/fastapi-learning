@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from core.database import get_db
 from models.category import Category
 from models.item import Item
-from schemas.item import ItemCreate, ItemListResponse, ItemResponse
+from schemas.item import ItemCreate, ItemListResponse, ItemResponse, ItemUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -27,13 +27,15 @@ router = APIRouter()
 def create_item(item: ItemCreate, db: Session = Depends(get_db)) -> ItemResponse:
     try:
         logger.info(f"Creating new item: {item.name}")
-        category=db.query(Category).filter(Category.id==item.category_id).first()
+        category = db.query(Category).filter(Category.id == item.category_id).first()
         if category is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Category not found in the database",
             )
-        db_item = Item(name=item.name, description=item.description, category_id=item.category_id)
+        db_item = Item(
+            name=item.name, description=item.description, category_id=item.category_id
+        )
         db.add(db_item)
         db.commit()
         db.refresh(db_item)
@@ -89,7 +91,13 @@ def read_items(
                 detail="Limit parameter must be between 1 and 100",
             )
 
-        item_list = db.query(Item).options(joinedload(Item.category)).offset(skip).limit(limit).all()
+        item_list = (
+            db.query(Item)
+            .options(joinedload(Item.category))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
         logger.info(f"Successfully fetched {len(item_list)} items")
 
         return {"items": item_list}
@@ -122,7 +130,12 @@ def read_item(item_id: int, db: Session = Depends(get_db)) -> ItemResponse:
     try:
         logger.info(f"Fetching item with ID: {item_id}")
 
-        db_item = db.query(Item).options(joinedload(Item.category)).filter(Item.id == item_id).first()
+        db_item = (
+            db.query(Item)
+            .options(joinedload(Item.category))
+            .filter(Item.id == item_id)
+            .first()
+        )
 
         if db_item is None:
             logger.warning(f"Item with ID {item_id} not found")
@@ -149,3 +162,28 @@ def read_item(item_id: int, db: Session = Depends(get_db)) -> ItemResponse:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred",
         )
+
+
+@router.put(
+    "/{item_id}",
+    response_model=ItemResponse,
+    status_code=status.HTTP_200_OK,
+)
+def update_item(
+    item_id: int, item_update_payload: ItemUpdate, db: Session = Depends(get_db)
+) -> ItemResponse:
+    db_item = db.query(Item).filter(Item.id == item_id).first()
+    if db_item is None:
+        logger.log("Item not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found",
+        )
+    update_item = item_update_payload.dict(exclude_unset=True)
+    for key, value in update_item.items():
+        setattr(db_item, key, value)
+
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
