@@ -8,6 +8,10 @@ pydantic_core==2.41.4
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 
+# Password hashing
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
 # Environment variables
 python-dotenv==1.0.0
 
