@@ -1,11 +1,11 @@
 import logging
 from sqlite3 import IntegrityError
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 
 from core.database import get_db
-from core.utils import hash_password, verify_password
+from core.utils import create_access_token, hash_password, verify_password
 from models.user import User
 from schemas.user import LoginPayload, LoginResponse, RequestPayload, ResponseModel
 
@@ -46,7 +46,9 @@ def signup(req_payload: RequestPayload, db: Session = Depends(get_db)) -> Respon
 
 
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
-def login(req_payload: LoginPayload, db: Session = Depends(get_db)) -> LoginResponse:
+def login(
+    req_payload: LoginPayload, response: Response, db: Session = Depends(get_db)
+) -> LoginResponse:
     try:
         existing_user = db.query(User).filter(User.email == req_payload.email).first()
 
@@ -66,10 +68,30 @@ def login(req_payload: LoginPayload, db: Session = Depends(get_db)) -> LoginResp
                 detail="Login credentials incorrect",
             )
 
-        return {"message": "Login success", "email": existing_user.email}
+        access_token = create_access_token(data={"sub": existing_user.email})
+
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=60 * 60,
+        )
+
+        return {
+            "message": "Login success",
+            "email": existing_user.email,
+        }
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed {e}"
         )
+
+
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Logged out successfully"}

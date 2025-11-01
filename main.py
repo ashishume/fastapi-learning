@@ -10,6 +10,7 @@ from core.database import Base, engine
 from api.endpoints import items
 from api.endpoints import categories
 from api.auth import auth
+from core.middleware import AuthMiddleware
 import models
 
 # Configure logging
@@ -62,6 +63,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.add_middleware(AuthMiddleware)
+
+
 
 # Include routers
 app.include_router(items.router, prefix="/items", tags=["items"])
