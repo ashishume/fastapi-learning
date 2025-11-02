@@ -7,6 +7,7 @@ pydantic_core==2.41.4
 # Database
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
+alembic==1.13.1
 
 # Password hashing
 passlib[bcrypt]==1.7.4

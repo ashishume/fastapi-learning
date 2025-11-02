@@ -82,7 +82,27 @@ CREATE DATABASE fastapi_learning;
 \q
 ```
 
-### 6. Run the Application
+### 6. Run Database Migrations
+
+Apply the database schema using Alembic migrations:
+
+```bash
+# Using alembic directly (recommended)
+alembic upgrade head
+
+# Or using the helper script
+python scripts/run_migrations.py upgrade
+```
+
+**📖 New to migrations?** Start here:
+- 🚀 **Quick Start**: [QUICK_START_MIGRATIONS.md](QUICK_START_MIGRATIONS.md) - Simple guide for beginners
+- ⚡ **Cheat Sheet**: [MIGRATION_CHEATSHEET.md](MIGRATION_CHEATSHEET.md) - One-page reference
+- ❓ **FAQ**: [MIGRATION_FAQ.md](MIGRATION_FAQ.md) - Common questions answered
+- 📊 **Visual Guide**: [MIGRATION_WORKFLOW.md](MIGRATION_WORKFLOW.md) - Diagrams and flowcharts
+- 📚 **Detailed Guide**: [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - Company-level best practices
+- 🔧 **Quick Commands**: Run `./scripts/migration_guide.sh` for status and help
+
+### 7. Run the Application
 
 ```bash
 uvicorn main:app --reload
@@ -103,6 +123,14 @@ Once the application is running, you can access:
 
 - `GET /` - Welcome message and API status
 
+### Categories
+
+- `POST /categories/` - Create a new category
+- `GET /categories/` - Get all categories (supports pagination)
+- `GET /categories/{category_id}` - Get a specific category by ID
+- `PUT /categories/{category_id}` - Update a category
+- `DELETE /categories/{category_id}` - Delete a category
+
 ### Items
 
 - `POST /items/` - Create a new item
@@ -111,30 +139,54 @@ Once the application is running, you can access:
 - `PUT /items/{item_id}` - Update an item
 - `DELETE /items/{item_id}` - Delete an item
 
+### Authentication
+
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login user
+- `GET /auth/me` - Get current user profile
+
 ## 📦 Project Structure
 
 ```
 fastapi_learning/
+├── alembic/                 # Database migrations
+│   ├── versions/            # Migration scripts
+│   ├── env.py              # Alembic environment config
+│   ├── README.md           # Migration documentation
+│   └── script.py.mako      # Migration template
 ├── api/
 │   ├── __init__.py
+│   ├── auth/               # Authentication endpoints
+│   │   ├── __init__.py
+│   │   └── auth.py
 │   └── endpoints/
 │       ├── __init__.py
-│       └── items.py          # Item endpoints
+│       ├── categories.py   # Category endpoints
+│       └── items.py        # Item endpoints
 ├── core/
 │   ├── __init__.py
-│   └── database.py           # Database configuration
+│   ├── database.py         # Database configuration
+│   ├── middleware.py       # Custom middleware
+│   └── utils.py           # Utility functions
 ├── models/
 │   ├── __init__.py
-│   └── item.py               # SQLAlchemy models
+│   ├── category.py        # Category model
+│   ├── item.py            # Item model
+│   └── user.py            # User model
 ├── schemas/
 │   ├── __init__.py
-│   └── item.py               # Pydantic schemas
-├── .env                      # Environment variables (git-ignored)
-├── .gitignore               # Git ignore rules
-├── app.log                  # Application logs (git-ignored)
-├── main.py                  # Application entry point
-├── README.md                # This file
-└── requirements.txt         # Python dependencies
+│   ├── category.py        # Category schemas
+│   ├── item.py            # Item schemas
+│   └── user.py            # User schemas
+├── scripts/
+│   └── run_migrations.py  # Migration helper script
+├── .env                   # Environment variables (git-ignored)
+├── .gitignore            # Git ignore rules
+├── alembic.ini           # Alembic configuration
+├── app.log               # Application logs (git-ignored)
+├── main.py               # Application entry point
+├── README.md             # This file
+└── requirements.txt      # Python dependencies
 ```
 
 ## 🛠️ Development Best Practices Implemented
@@ -173,6 +225,7 @@ fastapi_learning/
 - ✅ Health checks with `pool_pre_ping`
 - ✅ Proper session management
 - ✅ Lifespan events for startup/shutdown
+- ✅ Database migrations with Alembic
 
 ### 6. **Observability**
 
@@ -252,8 +305,8 @@ YYYY-MM-DD HH:MM:SS - module_name - LOG_LEVEL - Message
 
 ## 🚧 Future Enhancements
 
-- [ ] Add authentication and authorization
-- [ ] Implement database migrations with Alembic
+- [ ] Add role-based access control (RBAC)
+- [ ] Add JWT token refresh mechanism
 - [ ] Add unit and integration tests
 - [ ] Add request rate limiting
 - [ ] Implement caching with Redis
