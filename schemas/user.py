@@ -1,20 +1,22 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from models.user import Role
+
 
 class User(BaseModel):
     id: int
     email: str
     name: str
     password: str
-    token: str
+    role: Role
 
 
 class RequestPayload(BaseModel):
     email: str
     name: str
     password: str
-    token: str
+    role: Role = Role.USER
 
 
 class LoginPayload(BaseModel):

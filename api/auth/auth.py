@@ -29,7 +29,6 @@ def signup(req_payload: RequestPayload, db: Session = Depends(get_db)) -> Respon
             email=req_payload.email,
             name=req_payload.name,
             hashed_password=hashed_pass,
-            token=req_payload.token,
         )
 
         db.add(db_item)
