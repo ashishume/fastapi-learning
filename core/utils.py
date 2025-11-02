@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import hashlib
 import os
+from fastapi import HTTPException, Request
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 
@@ -41,3 +42,14 @@ def verify_token(token: str):
         return payload
     except JWTError:
         return None
+
+
+def auth_guard(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authorised")
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    request.state.user = payload.get("auth_user")
+    return payload.get("auth_user")

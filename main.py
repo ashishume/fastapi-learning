@@ -3,7 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.database import Base, engine
@@ -11,6 +11,7 @@ from api.endpoints import items
 from api.endpoints import categories
 from api.auth import auth
 from core.middleware import AuthMiddleware
+from core.utils import auth_guard
 import models
 
 # Configure logging
@@ -65,12 +66,18 @@ app.add_middleware(
 )
 
 
-app.add_middleware(AuthMiddleware)
-
+# auth guard for all routes
+# app.add_middleware(AuthMiddleware)  
 
 
 # Include routers
-app.include_router(items.router, prefix="/items", tags=["items"])
+app.include_router(
+    items.router,
+    prefix="/items",
+    tags=["items"],
+    # auth guard for all routes inside the items router
+    dependencies=[Depends(auth_guard)],
+)
 app.include_router(categories.router, prefix="/categories", tags=["categories"])
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 

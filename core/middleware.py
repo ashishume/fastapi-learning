@@ -28,7 +28,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     status_code=401, content={"detail": "Invalid or expired token"}
                 )
 
-            request.state.user = payload.get("sub")
+            request.state.user = payload.get("auth_user")
         except JWTError:
             return JSONResponse(
                 status_code=401, content={"detail": "Invalid or expired"}

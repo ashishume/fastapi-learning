@@ -68,7 +68,7 @@ def login(
                 detail="Login credentials incorrect",
             )
 
-        access_token = create_access_token(data={"sub": existing_user.email})
+        access_token = create_access_token(data={"auth_user": existing_user.email})
 
         response.set_cookie(
             key="access_token",
