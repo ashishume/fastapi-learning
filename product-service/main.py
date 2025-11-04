@@ -48,8 +48,8 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="FastAPI Learning Project",
-    description="A learning project for FastAPI with PostgreSQL",
+    title="Product Service",
+    description="A product service for the application",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -91,7 +91,7 @@ async def root():
         dict: Welcome message and API status
     """
     return {
-        "message": "Welcome to FastAPI Learning Project",
+        "message": "Welcome to product service",
         "status": "running",
         "docs": "/docs",
     }
