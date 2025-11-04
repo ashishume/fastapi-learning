@@ -9,7 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.database import Base, engine
 from api.endpoints import items
 from api.endpoints import categories
-from api.auth import auth
 from core.middleware import AuthMiddleware
 from core.utils import auth_guard
 import models
@@ -78,8 +77,7 @@ app.include_router(
     # auth guard for all routes inside the items router
     dependencies=[Depends(auth_guard)],
 )
-app.include_router(categories.router, prefix="/categories", tags=["categories"])
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(categories.router, prefix="/categories", tags=["categories"], dependencies=[Depends(auth_guard)])
 
 
 @app.get("/", tags=["root"])

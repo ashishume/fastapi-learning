@@ -95,6 +95,7 @@ python scripts/run_migrations.py upgrade
 ```
 
 **📖 New to migrations?** Start here:
+
 - 🚀 **Quick Start**: [QUICK_START_MIGRATIONS.md](QUICK_START_MIGRATIONS.md) - Simple guide for beginners
 - ⚡ **Cheat Sheet**: [MIGRATION_CHEATSHEET.md](MIGRATION_CHEATSHEET.md) - One-page reference
 - ❓ **FAQ**: [MIGRATION_FAQ.md](MIGRATION_FAQ.md) - Common questions answered
@@ -138,12 +139,6 @@ Once the application is running, you can access:
 - `GET /items/{item_id}` - Get a specific item by ID
 - `PUT /items/{item_id}` - Update an item
 - `DELETE /items/{item_id}` - Delete an item
-
-### Authentication
-
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login user
-- `GET /auth/me` - Get current user profile
 
 ## 📦 Project Structure
 
