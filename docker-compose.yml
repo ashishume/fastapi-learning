@@ -33,7 +33,7 @@ services:
       POSTGRES_DB: auth_service
       POSTGRES_HOST: auth-db
       POSTGRES_PORT: 5432
-      SECRET_KEY: dev-secret-key-change-in-production
+      TOKEN_SECRET: dev-secret-key-change-in-production
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
     depends_on:
@@ -79,7 +79,8 @@ services:
       POSTGRES_DB: product_service
       POSTGRES_HOST: product-db
       POSTGRES_PORT: 5432
-      SECRET_KEY: dev-secret-key-change-in-production
+      TOKEN_SECRET: dev-secret-key-change-in-production
+      INVENTORY_SERVICE_URL: http://inventory-service:8002
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
     depends_on:
@@ -125,6 +126,8 @@ services:
       POSTGRES_DB: inventory_service
       POSTGRES_HOST: inventory-db
       POSTGRES_PORT: 5432
+      PRODUCT_SERVICE_URL: http://product-service:8001
+      TOKEN_SECRET: dev-secret-key-change-in-production
     depends_on:
       inventory-db:
         condition: service_healthy

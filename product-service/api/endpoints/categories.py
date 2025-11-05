@@ -45,11 +45,32 @@ def category_create(
 
 
 @router.get("/", response_model=CategoryResponseList, status_code=status.HTTP_200_OK)
-def read_categories(db: Session = Depends(get_db)) -> CategoryResponseList:
+def read_categories(db: Session = Depends(get_db)):
     try:
         logger.info("fetching categories")
         db_item = db.query(Category).all()
         return {"categories": db_item}
+    except HTTPException:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="error"
+        )
+
+
+@router.get(
+    "/{categoryId}", response_model=CategoryResponse, status_code=status.HTTP_200_OK
+)
+def fetch_by_category_id(
+    categoryId: str, db: Session = Depends(get_db)
+) -> CategoryResponse:
+    try:
+        logger.info("fetching category by id")
+        db_item = db.query(Category).filter(Category.id == categoryId).first()
+
+        if not db_item:
+            raise HTTPException(
+                detail="category id not found", status_code=status.HTTP_404_NOT_FOUND
+            )
+        return db_item
     except HTTPException:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="error"

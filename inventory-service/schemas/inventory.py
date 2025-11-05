@@ -18,7 +18,7 @@ class InventoryResponse(BaseModel):
 
 class InventoryPayload(BaseModel):
     product_name: str
-    category: str
+    category: int
     quantity_in_stock: int
     unit_price: float
     last_restock_date: datetime

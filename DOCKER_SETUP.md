@@ -90,6 +90,12 @@ Once all services are running, you can access them at:
 
 You can connect to the PostgreSQL databases using these credentials:
 
+`docker exec -it product-db psql -U postgres -d product_service`
+
+`docker exec -it auth-db psql -U postgres -d auth_service`
+
+`docker exec -it inventory-db psql -U postgres -d inventory_service`
+
 ### Auth Service Database
 
 - Host: localhost

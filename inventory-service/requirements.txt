@@ -6,7 +6,7 @@ python-jose[cryptography]==3.3.0
 pydantic==2.12.3
 pydantic_core==2.41.4
 
-
+httpx==0.28.1
 # Database
 sqlalchemy==2.0.44
 psycopg2-binary==2.9.11
