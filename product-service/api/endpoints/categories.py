@@ -1,3 +1,4 @@
+import json
 import logging
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -5,6 +6,7 @@ from core.database import get_db
 from models.category import Category
 from schemas.category import CategoryCreate, CategoryResponse, CategoryResponseList
 from sqlalchemy.orm import Session
+from core.redis_client import redis_client
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -45,14 +47,42 @@ def category_create(
 
 
 @router.get("/", response_model=CategoryResponseList, status_code=status.HTTP_200_OK)
-def read_categories(db: Session = Depends(get_db)):
+async def read_categories(db: Session = Depends(get_db)):
     try:
         logger.info("fetching categories")
-        db_item = db.query(Category).all()
-        return {"categories": db_item}
-    except HTTPException:
+
+        cached_key = "category:all"
+        cached_data = await redis_client.get(cached_key)
+
+        if cached_data:
+            logger.info("returning cached data")
+            return json.loads(cached_data)
+
+        db_items = db.query(Category).all()
+        
+        # Convert to response format
+        response_data = {
+            "categories": [
+                CategoryResponse.model_validate(item).model_dump() for item in db_items
+            ]
+        }
+
+        # Cache the serialized response
+        await redis_client.set(cached_key, json.dumps(response_data), ex=60)
+        
+        # Return SQLAlchemy objects (Pydantic will handle conversion)
+        return {"categories": db_items}
+    except SQLAlchemyError as e:
+        logger.error(f"Database error while fetching categories: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="error"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail="Database error occurred"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching categories: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail="An unexpected error occurred"
         )
 
 
@@ -64,6 +94,7 @@ def fetch_by_category_id(
 ) -> CategoryResponse:
     try:
         logger.info("fetching category by id")
+
         db_item = db.query(Category).filter(Category.id == categoryId).first()
 
         if not db_item:
