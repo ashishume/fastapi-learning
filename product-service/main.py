@@ -11,6 +11,7 @@ from api.endpoints import items
 from api.endpoints import categories
 from core.middleware import AuthMiddleware
 from core.utils import auth_guard
+from core.redis_client import connect_redis, close_redis
 import models
 
 # Configure logging
@@ -36,12 +37,17 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
 
+    await connect_redis()
+
     yield
 
     # Shutdown
     logger.info("Shutting down application...")
     logger.info("Closing database connections...")
     engine.dispose()
+    
+    await close_redis()
+    
     logger.info("Application shutdown complete")
 
 
@@ -55,6 +61,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -66,7 +73,7 @@ app.add_middleware(
 
 
 # auth guard for all routes
-# app.add_middleware(AuthMiddleware)  
+# app.add_middleware(AuthMiddleware)
 
 
 # Include routers
@@ -77,7 +84,12 @@ app.include_router(
     # auth guard for all routes inside the items router
     dependencies=[Depends(auth_guard)],
 )
-app.include_router(categories.router, prefix="/categories", tags=["categories"], dependencies=[Depends(auth_guard)])
+app.include_router(
+    categories.router,
+    prefix="/categories",
+    tags=["categories"],
+    dependencies=[Depends(auth_guard)],
+)
 
 
 @app.get("/", tags=["root"])

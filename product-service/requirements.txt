@@ -16,6 +16,10 @@ bcrypt==4.1.2
 # JWT tokens
 python-jose[cryptography]==3.3.0
 
+# Caching
+redis[async]==5.1.1
+
+
 # Environment variables
 python-dotenv==1.0.0
 
