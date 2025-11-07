@@ -8,9 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 from api import inventory
+from api import orders
 # from core.middleware import AuthMiddleware
 from core.util import auth_guard
-
+import models
 
 # Configure logging
 logging.basicConfig(
@@ -74,6 +75,13 @@ app.include_router(
     prefix="/inventory",
     tags=["inventory"],
     # auth guard for all routes inside the items router
+    dependencies=[Depends(auth_guard)],
+)
+app.include_router(
+    orders.router,
+    prefix="/orders",
+    tags=["orders"],
+    # auth guard for all routes inside the orders router
     dependencies=[Depends(auth_guard)],
 )
 
