@@ -1,6 +1,7 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Enum as SQLEnum, UUID
 from core.database import Base
+import uuid
 
 
 class Role(str, Enum):
@@ -13,7 +14,7 @@ class Role(str, Enum):
 class User(Base):
 
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     email = Column(String(255), index=True, unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)

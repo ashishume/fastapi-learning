@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import the Base and models
 from core.database import Base, DATABASE_URL
-from models import User, Category, Item  # Import all models to ensure they're registered
+import models  # Import all models to ensure they're registered
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

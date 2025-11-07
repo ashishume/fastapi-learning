@@ -7,8 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.database import Base, engine
 from api.auth import auth
-from core.middleware import AuthMiddleware
-from core.utils import auth_guard
 import models
 
 # Configure logging

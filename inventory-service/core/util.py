@@ -52,5 +52,5 @@ def auth_guard(request: Request):
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
     request.state.user = payload.get("auth_user")
-    request.state.user_id = payload.get("auth_user_id")
-    return payload.get("auth_user"), payload.get("auth_user_id")
+    request.state.user_id = str(payload.get("auth_user_id"))
+    return payload.get("auth_user"), str(payload.get("auth_user_id"))

@@ -11,6 +11,7 @@ class OrderCreate(BaseModel):
     updated_at: datetime
 
 class OrderResponse(BaseModel):
+    model_config = {"from_attributes": True}
     id: int
     product_id: int
     quantity: int
@@ -20,5 +21,7 @@ class OrderResponse(BaseModel):
     updated_at: datetime
 
 class OrderDetailResponse(BaseModel):
+    model_config = {"from_attributes": True}
     order: OrderResponse
     product: Optional[Any] = None
+    user: Optional[Any] = None

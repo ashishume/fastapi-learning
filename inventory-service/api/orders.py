@@ -57,7 +57,9 @@ async def get_order(order_id:int,request:Request,db:Session=Depends(get_db)) -> 
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Order with id {order_id} not found")
 
         product = await fetch_product(db_item.product_id,request)
-        return {"order": db_item, "product": product}
+        user = await fetch_user(request)
+        print("user",user)
+        return OrderDetailResponse(order=db_item, product=product, user=user)
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Database error: {e}")
@@ -69,6 +71,7 @@ async def get_order(order_id:int,request:Request,db:Session=Depends(get_db)) -> 
 
 
 PRODUCT_SERVICE_URL = os.getenv("PRODUCT_SERVICE_URL")
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL")
 async def fetch_product(product_id:int,request:Request):
     try:
         async with httpx.AsyncClient() as client:
@@ -81,5 +84,20 @@ async def fetch_product(product_id:int,request:Request):
             return product
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code,detail=f"Product service error: {e.response.text}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Unexpected error: {e}")
+
+async def fetch_user(request:Request):
+    try:
+        async with httpx.AsyncClient() as client:
+            token = request.cookies.get("access_token")
+            cookies = {"access_token": token}
+            url = f"{AUTH_SERVICE_URL}/auth/user_details"
+            response = await client.get(url, cookies=cookies, timeout=10.0, follow_redirects=True)
+            response.raise_for_status()
+            user = response.json()
+            return user
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code,detail=f"Auth service error: {e.response.text}")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Unexpected error: {e}")
