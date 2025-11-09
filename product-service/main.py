@@ -12,6 +12,8 @@ from api.endpoints import categories
 from core.middleware import AuthMiddleware
 from core.utils import auth_guard
 from core.redis_client import connect_redis, close_redis
+from core.rate_limiter import add_rate_limit_headers
+from core.rate_limit_config import RateLimitConfig
 import models
 
 # Configure logging
@@ -37,7 +39,9 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
 
+    # Connect to Redis for caching and rate limiting
     await connect_redis()
+    logger.info(f"Rate limiting enabled: {RateLimitConfig.ENABLED}")
 
     yield
 
@@ -70,6 +74,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ===== Rate Limiting Middleware =====
+# Add rate limit headers to all responses
+# This middleware adds X-RateLimit-* headers to inform clients about their rate limit status
+app.middleware("http")(add_rate_limit_headers)
 
 
 # auth guard for all routes

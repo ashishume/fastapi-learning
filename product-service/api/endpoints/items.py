@@ -1,9 +1,9 @@
-"""Item endpoints for CRUD operations."""
+"""Item endpoints for CRUD operations with rate limiting examples."""
 
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
@@ -11,6 +11,7 @@ from core.database import get_db
 from models.category import Category
 from models.item import Item
 from schemas.item import ItemCreate, ItemListResponse, ItemResponse, ItemUpdate
+from core.rate_limiter import create_rate_limit_dependency
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,15 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     summary="Create a new item",
     response_description="The created item",
+    # Rate Limit: 50 requests per minute for creating items
+    # This is more restrictive than GET endpoints since POST is a mutation
+    dependencies=[Depends(create_rate_limit_dependency(limit=50, window=60))],
 )
-def create_item(item: ItemCreate, db: Session = Depends(get_db)) -> ItemResponse:
+def create_item(
+    item: ItemCreate,
+    request: Request,  # Required for rate limiting
+    db: Session = Depends(get_db)
+) -> ItemResponse:
     try:
         logger.info(f"Creating new item: {item.name}")
         category = db.query(Category).filter(Category.id == item.category_id).first()
@@ -72,9 +80,15 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)) -> ItemResponse
     status_code=status.HTTP_200_OK,
     summary="Get all items",
     response_description="List of all items",
+    # Rate Limit: 200 requests per minute for listing items
+    # GET endpoints typically allow more requests than mutations
+    dependencies=[Depends(create_rate_limit_dependency(limit=200, window=60))],
 )
 def read_items(
-    db: Session = Depends(get_db), skip: int = 0, limit: int = 100
+    request: Request,  # Required for rate limiting
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100
 ) -> ItemListResponse:
     try:
         logger.info(f"Fetching items (skip={skip}, limit={limit})")
@@ -125,8 +139,15 @@ def read_items(
     status_code=status.HTTP_200_OK,
     summary="Get a specific item",
     response_description="The requested item",
+    # Rate Limit: 300 requests per minute for single item lookups
+    # Single item queries are less resource-intensive than listing all items
+    dependencies=[Depends(create_rate_limit_dependency(limit=300, window=60))],
 )
-def read_item(item_id: int, db: Session = Depends(get_db)) -> ItemResponse:
+def read_item(
+    item_id: int,
+    request: Request,  # Required for rate limiting
+    db: Session = Depends(get_db)
+) -> ItemResponse:
     try:
         logger.info(f"Fetching item with ID: {item_id}")
 
@@ -168,9 +189,15 @@ def read_item(item_id: int, db: Session = Depends(get_db)) -> ItemResponse:
     "/{item_id}",
     response_model=ItemResponse,
     status_code=status.HTTP_200_OK,
+    # Rate Limit: 100 requests per minute for updating items
+    # Update operations are mutations but more common than creates
+    dependencies=[Depends(create_rate_limit_dependency(limit=100, window=60))],
 )
 def update_item(
-    item_id: int, item_update_payload: ItemUpdate, db: Session = Depends(get_db)
+    item_id: int,
+    item_update_payload: ItemUpdate,
+    request: Request,  # Required for rate limiting
+    db: Session = Depends(get_db)
 ) -> ItemResponse:
     db_item = db.query(Item).filter(Item.id == item_id).first()
     if db_item is None:
