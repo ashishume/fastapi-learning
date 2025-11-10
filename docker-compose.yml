@@ -46,17 +46,114 @@ services:
     restart: unless-stopped
 
   # Product Service Database
-  product-db:
+  # product-db:
+  #   image: postgres:16-alpine
+  #   container_name: product-db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: product_service
+  #   ports:
+  #     - "5433:5432"
+  #   volumes:
+  #     - product-db-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - microservices-network
+
+  # # Product Service
+  # product-service:
+  #   build:
+  #     context: ./product-service
+  #     dockerfile: Dockerfile
+  #   container_name: product-service
+  #   ports:
+  #     - "8001:8001"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: product_service
+  #     POSTGRES_HOST: product-db
+  #     POSTGRES_PORT: 5432
+  #     TOKEN_SECRET: dev-secret-key-change-in-production
+  #     INVENTORY_SERVICE_URL: http://inventory-service:8002
+  #     PRODUCT_SERVICE_URL: http://product-service:8001
+  #     ALGORITHM: HS256
+  #     ACCESS_TOKEN_EXPIRE_MINUTES: 30
+  #     REDIS_URL: redis://redis:6379
+  #   depends_on:
+  #     product-db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./product-service:/app
+  #   networks:
+  #     - microservices-network
+  #   restart: unless-stopped
+
+  # # Inventory Service Database
+  # inventory-db:
+  #   image: postgres:16-alpine
+  #   container_name: inventory-db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: inventory_service
+  #   ports:
+  #     - "5434:5432"
+  #   volumes:
+  #     - inventory-db-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - microservices-network
+
+  # # Inventory Service
+  # inventory-service:
+  #   build:
+  #     context: ./inventory-service
+  #     dockerfile: Dockerfile
+  #   container_name: inventory-service
+  #   ports:
+  #     - "8002:8002"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: inventory_service
+  #     POSTGRES_HOST: inventory-db
+  #     POSTGRES_PORT: 5432
+  #     PRODUCT_SERVICE_URL: http://product-service:8001
+  #     AUTH_SERVICE_URL: http://auth-service:8000
+  #     TOKEN_SECRET: dev-secret-key-change-in-production
+  #   depends_on:
+  #     inventory-db:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./inventory-service:/app
+  #   networks:
+  #     - microservices-network
+  #   restart: unless-stopped
+
+  # Booking Service Database
+  booking-db:
     image: postgres:16-alpine
-    container_name: product-db
+    container_name: booking-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: product_service
+      POSTGRES_DB: booking_service
     ports:
-      - "5433:5432"
+      - "5436:5432"
     volumes:
-      - product-db-data:/var/lib/postgresql/data
+      - booking-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -65,79 +162,28 @@ services:
     networks:
       - microservices-network
 
-  # Product Service
-  product-service:
+  # Booking Service
+  booking-service:
     build:
-      context: ./product-service
+      context: ./booking-service
       dockerfile: Dockerfile
-    container_name: product-service
+    container_name: booking-service
     ports:
-      - "8001:8001"
+      - "8003:8003"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: product_service
-      POSTGRES_HOST: product-db
-      POSTGRES_PORT: 5432
-      TOKEN_SECRET: dev-secret-key-change-in-production
-      INVENTORY_SERVICE_URL: http://inventory-service:8002
-      PRODUCT_SERVICE_URL: http://product-service:8001
-      ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 30
-      REDIS_URL: redis://redis:6379
-    depends_on:
-      product-db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./product-service:/app
-    networks:
-      - microservices-network
-    restart: unless-stopped
-
-  # Inventory Service Database
-  inventory-db:
-    image: postgres:16-alpine
-    container_name: inventory-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: inventory_service
-    ports:
-      - "5434:5432"
-    volumes:
-      - inventory-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - microservices-network
-
-  # Inventory Service
-  inventory-service:
-    build:
-      context: ./inventory-service
-      dockerfile: Dockerfile
-    container_name: inventory-service
-    ports:
-      - "8002:8002"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: inventory_service
-      POSTGRES_HOST: inventory-db
+      POSTGRES_DB: booking_service
+      POSTGRES_HOST: booking-db
       POSTGRES_PORT: 5432
       PRODUCT_SERVICE_URL: http://product-service:8001
       AUTH_SERVICE_URL: http://auth-service:8000
       TOKEN_SECRET: dev-secret-key-change-in-production
     depends_on:
-      inventory-db:
+      booking-db:
         condition: service_healthy
     volumes:
-      - ./inventory-service:/app
+      - ./booking-service:/app
     networks:
       - microservices-network
     restart: unless-stopped
@@ -167,4 +213,5 @@ volumes:
   auth-db-data:
   product-db-data:
   inventory-db-data:
+  booking-db-data:
   redis-data:
