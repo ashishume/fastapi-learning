@@ -11,7 +11,7 @@ from database import Base, engine
 # from api import orders
 # from core.middleware import AuthMiddleware
 # from core.util import auth_guard
-# import models
+import models
 
 # Configure logging
 logging.basicConfig(
