@@ -1,0 +1,302 @@
+{
+  "info": {
+    "_postman_id": "booking-service-collection",
+    "name": "Booking Service API",
+    "description": "Complete API collection for the Booking Service - manage movies, theaters, and showings",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Root",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/",
+              "host": ["{{BASE_URL}}"],
+              "path": [""]
+            },
+            "description": "Root endpoint to check if the service is running"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Movies",
+      "item": [
+        {
+          "name": "Create Movie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Inception\",\n  \"description\": \"A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.\",\n  \"duration_minutes\": 148,\n  \"genre\": \"Sci-Fi/Thriller\",\n  \"director\": \"Christopher Nolan\",\n  \"release_date\": \"2010-07-16\",\n  \"rating\": 8.8,\n  \"language\": \"English\",\n  \"is_imax\": true,\n  \"poster_url\": \"https://example.com/inception-poster.jpg\",\n  \"trailer_url\": \"https://example.com/inception-trailer.mp4\",\n  \"cast\": [\n    \"Leonardo DiCaprio\",\n    \"Marion Cotillard\",\n    \"Tom Hardy\",\n    \"Ellen Page\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/movies",
+              "host": ["{{BASE_URL}}"],
+              "path": ["movies"]
+            },
+            "description": "Create a new movie in the system"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Movies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/movies",
+              "host": ["{{BASE_URL}}"],
+              "path": ["movies"]
+            },
+            "description": "Retrieve all movies from the database"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Movie by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/movies/{{movie_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["movies", "{{movie_id}}"]
+            },
+            "description": "Retrieve a specific movie by its ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Movie",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Inception - Director's Cut\",\n  \"rating\": 9.0,\n  \"description\": \"An updated version of the mind-bending thriller\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/movies/{{movie_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["movies", "{{movie_id}}"]
+            },
+            "description": "Update specific fields of a movie (partial update)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Theaters",
+      "item": [
+        {
+          "name": "Create Theater",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grand Cinema\",\n  \"location\": \"Downtown\",\n  \"description\": \"State-of-the-art cinema with luxury seating and IMAX screens\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"New York\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/theaters",
+              "host": ["{{BASE_URL}}"],
+              "path": ["theaters"]
+            },
+            "description": "Create a new theater in the system"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Theaters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/theaters",
+              "host": ["{{BASE_URL}}"],
+              "path": ["theaters"]
+            },
+            "description": "Retrieve all theaters from the database"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Theater by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/theaters/{{theater_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["theaters", "{{theater_id}}"]
+            },
+            "description": "Retrieve a specific theater by its ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Theater",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grand Cinema Deluxe\",\n  \"description\": \"Premium cinema experience with reclining seats and dolby atmos\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/theaters/{{theater_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["theaters", "{{theater_id}}"]
+            },
+            "description": "Update specific fields of a theater (partial update)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Theater",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/theaters/{{theater_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["theaters", "{{theater_id}}"]
+            },
+            "description": "Delete a theater by its ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Showings",
+      "item": [
+        {
+          "name": "Create Showing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movie_id\": \"{{movie_id}}\",\n  \"theater_id\": \"{{theater_id}}\",\n  \"show_start_datetime\": \"2025-11-15T19:00:00\",\n  \"show_end_datetime\": \"2025-11-15T21:30:00\",\n  \"available_seats\": 150,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/showings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["showings"]
+            },
+            "description": "Create a new showing (movie screening) in a theater. Note: You need valid movie_id and theater_id from previous requests"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Showings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/showings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["showings"]
+            },
+            "description": "Retrieve all showings with movie and theater details"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Showing by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/showings/{{showing_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["showings", "{{showing_id}}"]
+            },
+            "description": "Retrieve a specific showing by its ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Showing",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"available_seats\": 120,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/showings/{{showing_id}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["showings", "{{showing_id}}"]
+            },
+            "description": "Update specific fields of a showing (partial update)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "movie_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "theater_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "showing_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
