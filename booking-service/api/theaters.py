@@ -4,12 +4,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 from database import get_db
-from schemas.Theater import TheaterCreate, TheaterResponse
+from schemas.theater import TheaterCreate, TheaterResponse
 from models.theaters import Theater
 router=APIRouter()
 
 
-@router.post("/",status_code=status.HTTP_201_CREATED,summary="Create a new theater",response_model=None)
+@router.post("/",status_code=status.HTTP_201_CREATED,summary="Create a new theater",response_model=TheaterResponse)
 def create_theater(theater: TheaterCreate, db: Session = Depends(get_db)) -> TheaterResponse:
         try:
             new_theater=Theater(
@@ -22,7 +22,7 @@ def create_theater(theater: TheaterCreate, db: Session = Depends(get_db)) -> The
             db.add(new_theater)
             db.commit()
             db.refresh(new_theater)
-            return new_theater
+            return TheaterResponse.model_validate(new_theater)
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error creating theater: {e}")
 

@@ -1,7 +1,7 @@
 from typing import Any, List
 from fastapi import APIRouter
 from sqlalchemy.orm import Session
-from schemas.Movie import MovieCreate, MovieResponse
+from schemas.movie import MovieCreate, MovieResponse
 from models.movies import Movie
 from database import get_db
 from fastapi import Depends, HTTPException, status
