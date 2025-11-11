@@ -7,11 +7,8 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
-# from api import inventory
-# from api import orders
-# from core.middleware import AuthMiddleware
-# from core.util import auth_guard
 import models
+from api import theaters, movies
 
 # Configure logging
 logging.basicConfig(
@@ -70,20 +67,14 @@ app.add_middleware(
 
 
 # Include routers
-# app.include_router(
-#     inventory.router,
-#     prefix="/inventory",
-#     tags=["inventory"],
-#     # auth guard for all routes inside the items router
-#     dependencies=[Depends(auth_guard)],
-# )
-# app.include_router(
-#     orders.router,
-#     prefix="/orders",
-#     tags=["orders"],
-#     # auth guard for all routes inside the orders router
-#     dependencies=[Depends(auth_guard)],
-# )
+routes = [
+    (theaters.router, "/theater", ["theater"]),
+    (movies.router, "/movies", ["movies"]),
+]
+
+
+for router, prefix, tags in routes:
+    app.include_router(router, prefix=prefix, tags=tags)
 
 
 @app.get("/", tags=["root"])

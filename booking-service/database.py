@@ -14,7 +14,7 @@ POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "admin")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "booking_service")
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5436")
 
 # Construct database URL
 DATABASE_URL = (

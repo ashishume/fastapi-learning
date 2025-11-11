@@ -1,6 +1,7 @@
 from datetime import date, datetime
 import datetime
 from sqlalchemy import (
+    ARRAY,
     UUID,
     Boolean,
     Column,
@@ -31,7 +32,7 @@ class Movie(Base):
     is_imax = Column(Boolean, nullable=True, default=False)
     poster_url = Column(String(255), nullable=True)
     trailer_url = Column(String(255), nullable=True)
-    cast = Column(Text, nullable=True)
+    cast = Column(ARRAY(Text), nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_at = Column(
         DateTime, nullable=False, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow
