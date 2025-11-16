@@ -59,7 +59,7 @@ def update_theater_by_id(theater_id: str, theater_update: dict[str, Any], db: Se
         theater_obj.updated_at = datetime.datetime.utcnow()
         db.commit()
         db.refresh(theater_obj)
-        return theater_obj
+        return TheaterResponse.model_validate(theater_obj)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error updating theater: {e}")
 

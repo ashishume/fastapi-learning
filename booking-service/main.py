@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 import models
-from api import theaters, movies, showings
+from api import theaters, movies, showings, seats
 
 # Configure logging
 logging.basicConfig(
@@ -71,6 +71,7 @@ routes = [
     (theaters.router, "/theaters", ["theaters"]),
     (movies.router, "/movies", ["movies"]),
     (showings.router, "/showings", ["showings"]),
+    (seats.router, "/seats", ["seats"]),
 ]
 
 
