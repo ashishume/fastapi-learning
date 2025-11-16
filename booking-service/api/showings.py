@@ -42,6 +42,7 @@ def create_showing(showing: ShowingCreate, db: Session = Depends(get_db)) -> Sho
             show_end_datetime=showing.show_end_datetime.isoformat(),
             available_seats=showing.available_seats,
             is_active=showing.is_active,
+            expires_at=showing.expires_at,
         )
         db.add(new_showing)
         db.commit()
@@ -68,24 +69,13 @@ def get_all_showings(db: Session = Depends(get_db)) -> List[ShowingResponse]:
                Theater.location, 
                Theater.city
            )
-       ).all()
-
+       ).filter(Showing.expires_at > datetime.datetime.utcnow()).all()
+       # check if the showing is expired
+       
        return [ShowingResponse.model_validate(showing) for showing in showings]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting showings: {e}")
-
-
-@router.get("/{showing_id}",status_code=status.HTTP_200_OK,summary="Get a showing by id",response_model=ShowingResponse)
-def get_showing_by_id(showing_id: str, db: Session = Depends(get_db)) -> ShowingResponse:
-    try:
-        showing = db.query(Showing).filter(Showing.id == showing_id).first()
-        if showing is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Showing with ID {showing_id} not found")
-        return ShowingResponse.model_validate(showing)
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting showing with ID {showing_id}: {e}")
+    
     
 @router.patch("/{showing_id}",status_code=status.HTTP_200_OK,summary="Update a showing by id",response_model=ShowingResponse)
 def update_showing_by_id(showing_id: str, showing_update: dict[str, Any], db: Session = Depends(get_db)) -> ShowingResponse:

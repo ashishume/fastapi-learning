@@ -1,3 +1,4 @@
+import datetime
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -46,7 +47,7 @@ def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
                 Showing.show_start_datetime,
                 Showing.show_end_datetime
             ),
-        ).all()
+        ).filter(Seat.showing.has(Showing.expires_at > datetime.datetime.utcnow())).all()
         return [SeatResponse.model_validate(seat) for seat in seats]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting seats: {e}")

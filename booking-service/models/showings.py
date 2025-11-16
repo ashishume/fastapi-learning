@@ -16,6 +16,7 @@ class Showing(Base):
     show_end_datetime = Column(Text, nullable=False)
     available_seats = Column(Integer, nullable=False,default=0)
     is_active = Column(Boolean, nullable=False,default=True)
+    expires_at= Column(DateTime, nullable=True)
 
 
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)

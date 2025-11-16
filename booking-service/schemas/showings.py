@@ -12,6 +12,7 @@ class ShowingCreate(BaseModel):
     show_end_datetime: datetime.datetime
     available_seats: int
     is_active: bool
+    expires_at: datetime.datetime
 
 
 # Simplified schemas for nested data
