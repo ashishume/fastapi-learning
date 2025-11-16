@@ -76,7 +76,9 @@ routes = [
 ]
 
 for router, prefix, tags, dependencies in routes:
-    app.include_router(router, prefix=prefix, tags=tags, dependencies=dependencies)
+    app.include_router(router, prefix=prefix, tags=tags, 
+    dependencies=dependencies
+    )
 
 
 @app.get("/", tags=["root"])

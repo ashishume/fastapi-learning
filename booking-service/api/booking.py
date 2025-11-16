@@ -17,6 +17,10 @@ router=APIRouter()
 @router.post("/",status_code=status.HTTP_201_CREATED,summary="Create a new booking",response_model=BookingResponse)
 def create_booking(booking: BookingCreate, request: Request,db: Session = Depends(get_db)) -> BookingResponse:
     try:
+        is_booking_exists=db.query(Booking).filter(Booking.user_id == request.state.user_id, Booking.movie_id == booking.movie_id, Booking.theater_id == booking.theater_id, Booking.showing_id == booking.showing_id, Booking.seats_id == booking.seats_id, Booking.status == BookingStatus.CONFIRMED).first()
+        if is_booking_exists is not None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Booking already exists")
+
         movie=db.query(Movie).filter(Movie.id == booking.movie_id).first()
         if movie is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Movie not found")
@@ -88,3 +92,13 @@ def get_all_bookings(db: Session = Depends(get_db)) -> List[BookingResponse]:
         return [BookingResponse.model_validate(booking) for booking in bookings]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting bookings: {e}")
+
+@router.get("/{booking_id}",status_code=status.HTTP_200_OK,summary="Get a booking by id",response_model=BookingResponse)
+def get_booking_by_id(booking_id: str, db: Session = Depends(get_db)) -> BookingResponse:
+    try:
+        booking = db.query(Booking).filter(Booking.id == booking_id).first()
+        if booking is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Booking not found")
+        return BookingResponse.model_validate(booking)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting booking: {e}")
