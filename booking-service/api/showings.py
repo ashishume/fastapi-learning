@@ -76,6 +76,16 @@ def get_all_showings(db: Session = Depends(get_db)) -> List[ShowingResponse]:
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting showings: {e}")
     
+
+@router.get("/{theater_id}/{movie_id}",status_code=status.HTTP_200_OK,summary="Get all showings by theater id",response_model=List[ShowingResponse])
+def get_showing_by_theater_id_and_movie_id(theater_id: str, movie_id: str, db: Session = Depends(get_db)) -> List[ShowingResponse]:
+    try:
+        showings=db.query(Showing).filter(Showing.theater_id == theater_id, Showing.movie_id == movie_id).all()
+        if showings is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Showings not found")
+        return [ShowingResponse.model_validate(showing) for showing in showings]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting showings by theater id and movie id: {e}")
     
 @router.patch("/{showing_id}",status_code=status.HTTP_200_OK,summary="Update a showing by id",response_model=ShowingResponse)
 def update_showing_by_id(showing_id: str, showing_update: dict[str, Any], db: Session = Depends(get_db)) -> ShowingResponse:

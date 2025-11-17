@@ -37,20 +37,34 @@ const signup = async (email: string, password: string) => {
 };
 
 const getMovies = async () => {
-  const response = await bookingApi.get("/bookings");
+  const response = await bookingApi.get("/movies");
   return response.data;
 };
 
-const getBookingById = async (id: string) => {
-  const response = await bookingApi.get(`/bookings/${id}`);
+const getMovieById = async (movie_id: string) => {
+  const response = await bookingApi.get(`/movies/${movie_id}`);
   return response.data;
 };
 
-const createBooking = async (booking: any) => {
-  const response = await bookingApi.post("/bookings", booking);
+const getTheaters = async () => {
+  const response = await bookingApi.get(`/theaters`);
   return response.data;
 };
 
+const getShowings = async (theater_id: string, movie_id: string) => {
+  const response = await bookingApi.get(`/showings/${theater_id}/${movie_id}`);
+  return response.data;
+};
+
+// const getSeats = async (showing_id: string) => {
+//   const response = await bookingApi.get(`/showings/${showing_id}/seats`);
+//   return response.data;
+// };
+
+// const getBooking = async (seats_id: string) => {
+//   const response = await bookingApi.get(`/seats/${seats_id}/bookings`);
+//   return response.data;
+// };
 export {
   authApi,
   bookingApi,
@@ -58,6 +72,7 @@ export {
   login,
   signup,
   getMovies,
-  getBookingById,
-  createBooking,
+  getMovieById,
+  getTheaters,
+  getShowings,
 };

@@ -5,6 +5,11 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Movies from "./pages/Movies";
+import MovieDetails from "./pages/MovieDetails";
+import Theaters from "./pages/Theaters";
+// import Showings from "./pages/Showings";
+import Seats from "./pages/Seats";
+import Booking from "./pages/Booking";
 
 function App() {
   return (
@@ -19,13 +24,52 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route path="/about" element={<About />} /> */}
         <Route path="/login" element={<Login />} />
         <Route
           path="/movies"
           element={
             <ProtectedRoute>
               <Movies />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/movies/:movie_id/details"
+          element={
+            <ProtectedRoute>
+              <MovieDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/movies/:movie_id/theaters"
+          element={
+            <ProtectedRoute>
+              <Theaters />
+            </ProtectedRoute>
+          }
+        />
+        {/* <Route
+          path="/movies/:movie_id/theaters/:theater_id/showings"
+          element={
+            <ProtectedRoute>
+              <Showings />
+            </ProtectedRoute>
+          }
+        /> */}
+        <Route
+          path="/showings/:showing_id/seats"
+          element={
+            <ProtectedRoute>
+              <Seats />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/:showing_id"
+          element={
+            <ProtectedRoute>
+              <Booking />
             </ProtectedRoute>
           }
         />
