@@ -21,8 +21,11 @@ function Navbar() {
             FastAPI Learning
           </Link>
           <div className="flex space-x-6">
-            <Link to="/" className="hover:text-blue-200 transition-colors">
-              Home
+            <Link
+              to="/movies"
+              className="hover:text-blue-200 transition-colors"
+            >
+              Movies
             </Link>
             <Link to="/about" className="hover:text-blue-200 transition-colors">
               About

@@ -2,12 +2,12 @@ import axios from "axios";
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL;
 const BOOKING_BASE_URL = import.meta.env.VITE_BOOKING_API_URL;
 
-export const authApi = axios.create({
+const authApi = axios.create({
   baseURL: AUTH_BASE_URL,
   withCredentials: true, // Enable sending cookies with requests
 });
 
-export const bookingApi = axios.create({
+const bookingApi = axios.create({
   baseURL: BOOKING_BASE_URL,
   withCredentials: true, // Enable sending cookies with requests
 });
@@ -26,29 +26,38 @@ const setupInterceptor = (logoutCallback: () => void) => {
   bookingApi.interceptors.response.use((response) => response, interceptor);
 };
 
-export { setupInterceptor };
-
-export const login = async (email: string, password: string) => {
+const login = async (email: string, password: string) => {
   const response = await authApi.post("/auth/login", { email, password });
   return response.data;
 };
 
-export const signup = async (email: string, password: string) => {
+const signup = async (email: string, password: string) => {
   const response = await authApi.post("/auth/signup", { email, password });
   return response.data;
 };
 
-export const getMovies = async () => {
+const getMovies = async () => {
   const response = await bookingApi.get("/bookings");
   return response.data;
 };
 
-export const getBookingById = async (id: string) => {
+const getBookingById = async (id: string) => {
   const response = await bookingApi.get(`/bookings/${id}`);
   return response.data;
 };
 
-export const createBooking = async (booking: any) => {
+const createBooking = async (booking: any) => {
   const response = await bookingApi.post("/bookings", booking);
   return response.data;
+};
+
+export {
+  authApi,
+  bookingApi,
+  setupInterceptor,
+  login,
+  signup,
+  getMovies,
+  getBookingById,
+  createBooking,
 };

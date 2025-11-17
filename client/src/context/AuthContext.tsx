@@ -14,6 +14,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  loading: boolean;
   setUser: (user: User | null) => void;
   login: (email: string) => void;
   logout: () => Promise<void>;
@@ -23,14 +24,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const response = await authApi.get("/auth/user_details", {
-        withCredentials: true,
-      });
-
-      setUser(response.data);
+      try {
+        const response = await authApi.get("/auth/user_details", {
+          withCredentials: true,
+        });
+        setUser(response.data);
+      } catch (error) {
+        // User is not authenticated
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
@@ -50,7 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        isAuthenticated: user !== null && user !== undefined,
+        loading,
         setUser,
         login,
         logout,

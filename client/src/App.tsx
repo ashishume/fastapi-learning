@@ -3,8 +3,8 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Movies from "./pages/Movies";
 
 function App() {
   return (
@@ -22,10 +22,10 @@ function App() {
         {/* <Route path="/about" element={<About />} /> */}
         <Route path="/login" element={<Login />} />
         <Route
-          path="/dashboard"
+          path="/movies"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Movies />
             </ProtectedRoute>
           }
         />
