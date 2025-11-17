@@ -1,6 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const onLogoutHandler = async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
     <nav className="bg-blue-600 text-white shadow-lg">
       <div className="container mx-auto px-4">
@@ -9,18 +21,13 @@ function Navbar() {
             FastAPI Learning
           </Link>
           <div className="flex space-x-6">
-            <Link
-              to="/"
-              className="hover:text-blue-200 transition-colors"
-            >
+            <Link to="/" className="hover:text-blue-200 transition-colors">
               Home
             </Link>
-            <Link
-              to="/about"
-              className="hover:text-blue-200 transition-colors"
-            >
+            <Link to="/about" className="hover:text-blue-200 transition-colors">
               About
             </Link>
+            <button onClick={onLogoutHandler}>Logout</button>
           </div>
         </div>
       </div>
@@ -29,4 +36,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

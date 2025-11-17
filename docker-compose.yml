@@ -188,6 +188,24 @@ services:
       - microservices-network
     restart: unless-stopped
 
+  # Client (React Frontend)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_AUTH_SERVICE_URL=http://localhost:8000
+      - VITE_BOOKING_SERVICE_URL=http://localhost:8003
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
   # Redis Cache
   redis:
     image: redis:7-alpine
