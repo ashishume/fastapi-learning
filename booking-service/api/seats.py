@@ -50,16 +50,7 @@ def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
             ),
         ).where(Seat.showing.has(Showing.expires_at > datetime.datetime.utcnow()))).scalars().all()
         
-        # Build response with theater details from showing
-        result = []
-        for seat in seats:
-            seat_dict = SeatResponse.model_validate(seat).model_dump()
-            # Extract theater from showing relationship if available
-            if seat.showing and seat.showing.theater:
-                seat_dict['theater'] = TheaterBrief.model_validate(seat.showing.theater).model_dump()
-            result.append(SeatResponse(**seat_dict))
-        
-        return result
+        return [SeatResponse.model_validate(seat) for seat in seats]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting seats: {e}")
 

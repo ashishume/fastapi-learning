@@ -81,7 +81,11 @@ def get_all_showings(db: Session = Depends(get_db)) -> List[ShowingResponse]:
 @router.get("/{theater_id}/{movie_id}",status_code=status.HTTP_200_OK,summary="Get all showings by theater id",response_model=List[ShowingResponse])
 def get_showing_by_theater_id_and_movie_id(theater_id: str, movie_id: str, db: Session = Depends(get_db)) -> List[ShowingResponse]:
     try:
-        showings=db.execute(select(Showing).where(Showing.theater_id == theater_id, Showing.movie_id == movie_id)).scalars().all()
+        showings=db.execute(select(Showing).where(
+            Showing.theater_id == theater_id, 
+            Showing.movie_id == movie_id,
+            Showing.expires_at > datetime.datetime.utcnow()
+        )).scalars().all()
         if showings is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Showings not found")
         return [ShowingResponse.model_validate(showing) for showing in showings]
