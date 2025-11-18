@@ -8,6 +8,7 @@ from database import get_db
 from models.seats import Seat
 from models.theaters import Theater
 from models.showings import Showing
+from models.movies import Movie
 from typing import List
 router=APIRouter()
 
@@ -35,6 +36,14 @@ def create_seat(seat: SeatCreate, db: Session = Depends(get_db)) -> SeatCreateRe
 def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
     try:
         seats = db.execute(select(Seat).options(
+            joinedload(Seat.showing).joinedload(Showing.movie).load_only(
+                Movie.id,
+                Movie.title,
+                Movie.duration_minutes,
+                Movie.genre,
+                Movie.rating,
+                Movie.poster_url
+            ),
             joinedload(Seat.showing).load_only(
                 Showing.id,
                 Showing.movie_id,
@@ -53,6 +62,39 @@ def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
         return [SeatResponse.model_validate(seat) for seat in seats]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting seats: {e}")
+
+
+@router.get("/{showing_id}",status_code=status.HTTP_200_OK,summary="Get all seats",response_model=List[SeatResponse])
+def get_all_seats_by_showing_id(showing_id: UUID, db: Session = Depends(get_db)) -> List[SeatResponse]:
+    try:
+        seats = db.execute(select(Seat).options(
+            joinedload(Seat.showing).joinedload(Showing.movie).load_only(
+                Movie.id,
+                Movie.title,
+                Movie.duration_minutes,
+                Movie.genre,
+                Movie.rating,
+                Movie.poster_url
+            ),
+            joinedload(Seat.showing).load_only(
+                Showing.id,
+                Showing.movie_id,
+                Showing.theater_id,
+                Showing.show_start_datetime,
+                Showing.show_end_datetime
+            ),
+            joinedload(Seat.showing).joinedload(Showing.theater).load_only(
+                Theater.id,
+                Theater.name,
+                Theater.location,
+                Theater.city
+            ),
+        ).where(Seat.showing.has(Showing.expires_at > datetime.datetime.utcnow()), Seat.showing_id == showing_id)).scalars().all()
+        
+        return [SeatResponse.model_validate(seat) for seat in seats]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting seats: {e}")
+
 
 
 

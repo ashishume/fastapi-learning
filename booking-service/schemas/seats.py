@@ -13,6 +13,15 @@ class TheaterBrief(BaseModel):
     location: str
     city: str
 
+class MovieBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    title: str
+    duration_minutes: int
+    genre: Optional[str] = None
+    rating: Optional[float] = None
+    poster_url: Optional[str] = None
+
 class ShowingBrief(BaseModel):
     """Simplified showing info for seat responses"""
     model_config = ConfigDict(from_attributes=True)
@@ -22,7 +31,7 @@ class ShowingBrief(BaseModel):
     show_start_datetime: datetime.datetime
     show_end_datetime: datetime.datetime
     theater: Optional[TheaterBrief] = None
-    # theater: Optional[TheaterBrief] = None
+    movie: Optional[MovieBrief] = None
 
 class SeatCreate(BaseModel):
     # theater_id: UUID

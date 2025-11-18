@@ -34,3 +34,15 @@ class Seat(Base):
     # theater = relationship("Theater", back_populates="seats")
     bookings = relationship("Booking", back_populates="seats")
     showing = relationship("Showing", back_populates="seats", primaryjoin="Seat.showing_id == Showing.id")
+    
+
+    # TODO: Remove this once the schema is updated to use the movie and theater relationships
+    # @property
+    # def movie(self):
+    #     """Expose movie through showing relationship for SeatResponse schema"""
+    #     return self.showing.movie if self.showing else None
+    
+    # @property
+    # def theater(self):
+    #     """Expose theater through showing relationship for SeatResponse schema"""
+    #     return self.showing.theater if self.showing else None
