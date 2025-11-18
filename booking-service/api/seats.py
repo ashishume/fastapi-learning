@@ -1,6 +1,7 @@
 import datetime
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 from schemas.seats import SeatCreate, SeatCreateResponse, SeatResponse, TheaterBrief
 from database import get_db
@@ -33,7 +34,7 @@ def create_seat(seat: SeatCreate, db: Session = Depends(get_db)) -> SeatCreateRe
 @router.get("/",status_code=status.HTTP_200_OK,summary="Get all seats",response_model=List[SeatResponse])
 def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
     try:
-        seats = db.query(Seat).options(
+        seats = db.execute(select(Seat).options(
             joinedload(Seat.showing).load_only(
                 Showing.id,
                 Showing.movie_id,
@@ -47,7 +48,7 @@ def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
                 Theater.location,
                 Theater.city
             ),
-        ).filter(Seat.showing.has(Showing.expires_at > datetime.datetime.utcnow())).all()
+        ).where(Seat.showing.has(Showing.expires_at > datetime.datetime.utcnow()))).scalars().all()
         
         # Build response with theater details from showing
         result = []
@@ -67,7 +68,7 @@ def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
 @router.delete("/{seat_id}",status_code=status.HTTP_204_NO_CONTENT,summary="Delete a seat",response_model=None)
 def delete_seat(seat_id: UUID, db: Session = Depends(get_db)) -> None:
         try:
-            seat = db.query(Seat).filter(Seat.id == seat_id).first()
+            seat = db.execute(select(Seat).where(Seat.id == seat_id)).scalar_one_or_none()
             if seat is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Seat not found")
             db.delete(seat)

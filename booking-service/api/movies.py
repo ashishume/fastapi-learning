@@ -1,5 +1,6 @@
 from typing import Any, List
 from fastapi import APIRouter
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from schemas.movie import MovieCreate, MovieResponse
 from models.movies import Movie
@@ -37,7 +38,7 @@ def create_movie(movie: MovieCreate, db: Session = Depends(get_db)) -> MovieResp
 @router.get("/",status_code=status.HTTP_200_OK,summary="Get all movies",response_model=List[MovieResponse])
 def get_all_movies(db: Session = Depends(get_db)) -> List[MovieResponse]:
     try:
-        movies = db.query(Movie).all()
+        movies = db.execute(select(Movie)).scalars().all()
         return [MovieResponse.model_validate(movie) for movie in movies]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting movies: {e}")
@@ -46,7 +47,7 @@ def get_all_movies(db: Session = Depends(get_db)) -> List[MovieResponse]:
 @router.get("/{movie_id}",status_code=status.HTTP_200_OK,summary="Get a movie by id",response_model=MovieResponse)
 def get_movie_by_id(movie_id: str, db: Session = Depends(get_db)) -> MovieResponse:
     try:
-        movie = db.query(Movie).filter(Movie.id == movie_id).first()
+        movie = db.execute(select(Movie).where(Movie.id == movie_id)).scalar_one_or_none()
         if movie is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Movie not found")
         return MovieResponse.model_validate(movie)
@@ -56,7 +57,7 @@ def get_movie_by_id(movie_id: str, db: Session = Depends(get_db)) -> MovieRespon
 @router.patch("/{movie_id}",status_code=status.HTTP_200_OK,summary="Update a movie by id",response_model=MovieResponse)
 def update_movie_by_id(movie_id: str, movie_update: dict[str, Any], db: Session = Depends(get_db)) -> MovieResponse:
     try:
-        movie = db.query(Movie).filter(Movie.id == movie_id).first()
+        movie = db.execute(select(Movie).where(Movie.id == movie_id)).scalar_one_or_none()
         if movie is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Movie not found")
         for key, value in movie_update.items():

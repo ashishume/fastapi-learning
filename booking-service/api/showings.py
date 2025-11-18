@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload, load_only
 from database import get_db
 from schemas.showings import ShowingCreate, ShowingResponse
@@ -17,20 +18,20 @@ def create_showing(showing: ShowingCreate, db: Session = Depends(get_db)) -> Sho
         if showing.available_seats <= 0:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Available seats must be greater than 0")
 
-        movie=db.query(Movie).filter(Movie.id == showing.movie_id).first()    
+        movie=db.execute(select(Movie).where(Movie.id == showing.movie_id)).scalar_one_or_none()    
         if movie is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Movie not found")
-        theater=db.query(Theater).filter(Theater.id==showing.theater_id).first()
+        theater=db.execute(select(Theater).where(Theater.id==showing.theater_id)).scalar_one_or_none()
         if theater is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Theater not found")
 
 
-        is_showing_exists=db.query(Showing).filter(
+        is_showing_exists=db.execute(select(Showing).where(
             Showing.movie_id == showing.movie_id, 
             Showing.theater_id == showing.theater_id, 
             Showing.show_start_datetime == showing.show_start_datetime.isoformat(), 
             Showing.show_end_datetime == showing.show_end_datetime.isoformat()
-        ).first()
+        )).scalar_one_or_none()
 
         if is_showing_exists is not None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"A showing already exists for this movie and theater at this time")
@@ -54,7 +55,7 @@ def create_showing(showing: ShowingCreate, db: Session = Depends(get_db)) -> Sho
 @router.get("/",status_code=status.HTTP_200_OK,summary="Get all showings",response_model=List[ShowingResponse])
 def get_all_showings(db: Session = Depends(get_db)) -> List[ShowingResponse]:
     try:
-       showings=db.query(Showing).options(
+       showings=db.execute(select(Showing).options(
            joinedload(Showing.movie).load_only(
                Movie.id, 
                Movie.title, 
@@ -69,7 +70,7 @@ def get_all_showings(db: Session = Depends(get_db)) -> List[ShowingResponse]:
                Theater.location, 
                Theater.city
            )
-       ).filter(Showing.expires_at > datetime.datetime.utcnow()).all()
+       ).where(Showing.expires_at > datetime.datetime.utcnow())).scalars().all()
        # check if the showing is expired
        
        return [ShowingResponse.model_validate(showing) for showing in showings]
@@ -80,7 +81,7 @@ def get_all_showings(db: Session = Depends(get_db)) -> List[ShowingResponse]:
 @router.get("/{theater_id}/{movie_id}",status_code=status.HTTP_200_OK,summary="Get all showings by theater id",response_model=List[ShowingResponse])
 def get_showing_by_theater_id_and_movie_id(theater_id: str, movie_id: str, db: Session = Depends(get_db)) -> List[ShowingResponse]:
     try:
-        showings=db.query(Showing).filter(Showing.theater_id == theater_id, Showing.movie_id == movie_id).all()
+        showings=db.execute(select(Showing).where(Showing.theater_id == theater_id, Showing.movie_id == movie_id)).scalars().all()
         if showings is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Showings not found")
         return [ShowingResponse.model_validate(showing) for showing in showings]
@@ -90,7 +91,7 @@ def get_showing_by_theater_id_and_movie_id(theater_id: str, movie_id: str, db: S
 @router.patch("/{showing_id}",status_code=status.HTTP_200_OK,summary="Update a showing by id",response_model=ShowingResponse)
 def update_showing_by_id(showing_id: str, showing_update: dict[str, Any], db: Session = Depends(get_db)) -> ShowingResponse:
     try:
-        showing = db.query(Showing).filter(Showing.id == showing_id).first()
+        showing = db.execute(select(Showing).where(Showing.id == showing_id)).scalar_one_or_none()
         if showing is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Showing with ID {showing_id} not found")
         for key, value in showing_update.items():
