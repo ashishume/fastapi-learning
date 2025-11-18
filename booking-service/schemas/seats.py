@@ -21,6 +21,8 @@ class ShowingBrief(BaseModel):
     theater_id: UUID
     show_start_datetime: datetime.datetime
     show_end_datetime: datetime.datetime
+    theater: Optional[TheaterBrief] = None
+    # theater: Optional[TheaterBrief] = None
 
 class SeatCreate(BaseModel):
     # theater_id: UUID
