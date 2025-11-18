@@ -19,6 +19,6 @@ class Theater(Base):
     updated_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow,onupdate=datetime.datetime.utcnow)
 
     # Relationships
-    seats = relationship("Seat", back_populates="theater",cascade="all, delete-orphan")
+    # seats = relationship("Seat", back_populates="theater",cascade="all, delete-orphan")  # Removed: seats are now linked through showings
     showings = relationship("Showing", back_populates="theater",cascade="all, delete-orphan")
     bookings = relationship("Booking", back_populates="theater",cascade="all, delete-orphan")

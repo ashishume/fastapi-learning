@@ -12,6 +12,7 @@ class Showing(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     movie_id = Column(UUID(as_uuid=True), ForeignKey("movies.id"), nullable=False)
     theater_id = Column(UUID(as_uuid=True), ForeignKey("theaters.id"), nullable=False)
+    seats_id = Column(UUID(as_uuid=True), ForeignKey("seats.id"), nullable=True)
     show_start_datetime = Column(Text, nullable=False)
     show_end_datetime = Column(Text, nullable=False)
     available_seats = Column(Integer, nullable=False,default=0)
@@ -26,4 +27,4 @@ class Showing(Base):
     theater = relationship("Theater", back_populates="showings")
     movie = relationship("Movie", back_populates="showings")
     bookings = relationship("Booking", back_populates="showing",cascade="all, delete-orphan")
-    seats = relationship("Seat", back_populates="showing",cascade="all, delete-orphan")
+    seats = relationship("Seat", back_populates="showing", primaryjoin="Showing.id == Seat.showing_id", cascade="all, delete-orphan")

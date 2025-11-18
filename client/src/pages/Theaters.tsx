@@ -54,10 +54,7 @@ const Theaters = () => {
         {theaters.map((theater) => (
           <div
             key={theater.id}
-            className="border-b border-gray-200 py-4 px-2 hover:bg-gray-50 transition-colors duration-300 cursor-pointer"
-            onClick={() =>
-              navigate(`/movies/${movie_id}/theaters/${theater.id}/showings`)
-            }
+            className="border-b border-gray-200 py-4 px-2 transition-colors duration-300 cursor-pointer"
           >
             <h2 className="text-xl font-bold">{theater.name}</h2>
             <p className="text-sm text-gray-500">{theater.location}</p>
@@ -65,6 +62,7 @@ const Theaters = () => {
             <div className="flex gap-2 mt-4">
               {showings[theater.id].map((showing: Showing) => (
                 <div
+                  onClick={() => navigate(`/showings/${showing.id}/seats`)}
                   key={showing.id}
                   className="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden hover:shadow-md transition flex gap-2 p-4 flex-col"
                 >

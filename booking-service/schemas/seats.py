@@ -23,7 +23,7 @@ class ShowingBrief(BaseModel):
     show_end_datetime: datetime.datetime
 
 class SeatCreate(BaseModel):
-    theater_id: UUID
+    # theater_id: UUID
     showing_id: UUID
     seat_number: str
     row: str
@@ -33,7 +33,7 @@ class SeatCreate(BaseModel):
 class SeatCreateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    theater_id: UUID
+    # theater_id: UUID
     showing_id: UUID
     seat_number: str
     row: str
@@ -46,7 +46,7 @@ class SeatCreateResponse(BaseModel):
 class SeatResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    theater_id: UUID
+    # theater_id: UUID
     showing_id: UUID
     seat_number: str
     row: str
