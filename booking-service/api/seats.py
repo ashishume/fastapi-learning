@@ -5,97 +5,45 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 from schemas.seats import SeatCreate, SeatCreateResponse, SeatResponse, TheaterBrief
 from database import get_db
-from models.seats import Seat
-from models.theaters import Theater
-from models.showings import Showing
-from models.movies import Movie
+from models.seats import Seat, SeatType
+# from models.theaters import Theater
+# from models.showings import Showing
+# from models.movies import Movie
 from typing import List
 router=APIRouter()
 
-
-@router.post("/",status_code=status.HTTP_201_CREATED,summary="Create a new seat",response_model=SeatCreateResponse)
-def create_seat(seat: SeatCreate, db: Session = Depends(get_db)) -> SeatCreateResponse:
+@router.post("/{theater_id}/initialize",status_code=status.HTTP_201_CREATED,summary="Initialize seats for a theater",response_model=List[SeatResponse])
+def initialize_seats(theater_id: UUID, rows: int = 15, seats_per_row: int = 9, db: Session = Depends(get_db)) -> List[SeatResponse]:
     try:
-        new_seat = Seat(
-            # theater_id=seat.theater_id,
-            showing_id=seat.showing_id,
-            seat_number=seat.seat_number,
-            row=seat.row,
-            column=seat.column,
-            seat_type=seat.seat_type,
-        )
-        db.add(new_seat)
-        db.commit()
-        db.refresh(new_seat)
-        return SeatCreateResponse.model_validate(new_seat)
+
+       seats = []
+       rows_list = [chr(65 + i) for i in range(rows)]  # A, B, C, ...   , P
+
+       for row in rows_list:
+           for col in range(1, seats_per_row + 1):
+               seat_number = f"{row}{col}"
+               seats.append(Seat(
+                   theater_id=theater_id,
+                   seat_number=seat_number,
+                   row=row,
+                   column=str(col),
+                   seat_type=SeatType.REGULAR,
+               ))
+       db.add_all(seats)
+       db.commit()
+       return [SeatResponse.model_validate(seat) for seat in seats]
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error creating seat: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error initializing seats: {e}")
 
 
-@router.get("/",status_code=status.HTTP_200_OK,summary="Get all seats",response_model=List[SeatResponse])
-def get_all_seats(db: Session = Depends(get_db)) -> List[SeatResponse]:
+@router.get("/{theater_id}",status_code=status.HTTP_200_OK,summary="Get all seats",response_model=List[SeatResponse])
+def get_all_seats(theater_id: UUID, db: Session = Depends(get_db)) -> List[SeatResponse]:
     try:
-        seats = db.execute(select(Seat).options(
-            joinedload(Seat.showing).joinedload(Showing.movie).load_only(
-                Movie.id,
-                Movie.title,
-                Movie.duration_minutes,
-                Movie.genre,
-                Movie.rating,
-                Movie.poster_url
-            ),
-            joinedload(Seat.showing).load_only(
-                Showing.id,
-                Showing.movie_id,
-                Showing.theater_id,
-                Showing.show_start_datetime,
-                Showing.show_end_datetime
-            ),
-            joinedload(Seat.showing).joinedload(Showing.theater).load_only(
-                Theater.id,
-                Theater.name,
-                Theater.location,
-                Theater.city
-            ),
-        ).where(Seat.showing.has(Showing.expires_at > datetime.datetime.utcnow()))).scalars().all()
+        seats = db.execute(select(Seat).where(Seat.theater_id == theater_id)).scalars().all()
         
         return [SeatResponse.model_validate(seat) for seat in seats]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting seats: {e}")
-
-
-@router.get("/{showing_id}",status_code=status.HTTP_200_OK,summary="Get all seats",response_model=List[SeatResponse])
-def get_all_seats_by_showing_id(showing_id: UUID, db: Session = Depends(get_db)) -> List[SeatResponse]:
-    try:
-        seats = db.execute(select(Seat).options(
-            joinedload(Seat.showing).joinedload(Showing.movie).load_only(
-                Movie.id,
-                Movie.title,
-                Movie.duration_minutes,
-                Movie.genre,
-                Movie.rating,
-                Movie.poster_url
-            ),
-            joinedload(Seat.showing).load_only(
-                Showing.id,
-                Showing.movie_id,
-                Showing.theater_id,
-                Showing.show_start_datetime,
-                Showing.show_end_datetime
-            ),
-            joinedload(Seat.showing).joinedload(Showing.theater).load_only(
-                Theater.id,
-                Theater.name,
-                Theater.location,
-                Theater.city
-            ),
-        ).where(Seat.showing.has(Showing.expires_at > datetime.datetime.utcnow()), Seat.showing_id == showing_id)).scalars().all()
-        
-        return [SeatResponse.model_validate(seat) for seat in seats]
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting seats: {e}")
-
-
 
 
 @router.delete("/{seat_id}",status_code=status.HTTP_204_NO_CONTENT,summary="Delete a seat",response_model=None)

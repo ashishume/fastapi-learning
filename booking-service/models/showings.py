@@ -26,4 +26,5 @@ class Showing(Base):
     theater = relationship("Theater", back_populates="showings")
     movie = relationship("Movie", back_populates="showings")
     bookings = relationship("Booking", back_populates="showing",cascade="all, delete-orphan")
-    seats = relationship("Seat", back_populates="showing", primaryjoin="Showing.id == Seat.showing_id", cascade="all, delete-orphan")
+    booking_seats = relationship("BookingSeat", back_populates="showing",cascade="all, delete-orphan")
+    # seats = relationship("Seat", back_populates="showing", primaryjoin="Showing.id == Seat.showing_id", cascade="all, delete-orphan")

@@ -11,6 +11,7 @@ from models.theaters import Theater
 from models.showings import Showing
 from models.seats import Seat
 from models.bookings import BookingStatus
+from models.booking_seats import BookingSeat
 import uuid
 router=APIRouter()
 
@@ -18,38 +19,47 @@ router=APIRouter()
 @router.post("/",status_code=status.HTTP_201_CREATED,summary="Create a new booking",response_model=BookingResponse)
 def create_booking(booking: BookingCreate, request: Request,db: Session = Depends(get_db)) -> BookingResponse:
     try:
-        is_booking_exists=db.execute(select(Booking).where(Booking.user_id == request.state.user_id, Booking.movie_id == booking.movie_id, Booking.theater_id == booking.theater_id, Booking.showing_id == booking.showing_id, Booking.seats_id == booking.seats_id, Booking.status == BookingStatus.CONFIRMED)).scalar_one_or_none()
-        if is_booking_exists is not None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Booking already exists")
+        is_showing_exists=db.execute(select(Showing).where(Showing.id== booking.showing_id, Showing.expires_at > datetime.datetime.utcnow())).scalar_one_or_none()
+        if is_showing_exists is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Showing not found or expired")
 
-        movie=db.execute(select(Movie).where(Movie.id == booking.movie_id)).scalar_one_or_none()
-        if movie is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Movie not found")
-        theater=db.execute(select(Theater).where(Theater.id == booking.theater_id)).scalar_one_or_none()
-        if theater is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Theater not found")
-        showing=db.execute(select(Showing).where(Showing.id == booking.showing_id, Showing.expires_at > datetime.datetime.utcnow())).scalar_one_or_none()
-        if showing is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Showing not found or expired")
-        seats=db.execute(select(Seat).where(Seat.id == booking.seats_id, Seat.showing_id == booking.showing_id)).scalar_one_or_none()
-        if seats is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Seat not found or not available")
-        booking_number=uuid.uuid4()
-        booking_status=BookingStatus.CONFIRMED
-        booking_number=str(booking_number)
-        print(request.state.user_id)
+
+        # Check if any seats are already booked in a single query for better performance
+        existing_bookings = db.execute(
+            select(BookingSeat.seat_id)
+            .where(
+                BookingSeat.seat_id.in_(booking.seats_ids),
+                BookingSeat.showing_id == booking.showing_id
+            )
+        ).scalars().all()
+        
+        if existing_bookings:
+            booked_seat_ids = list(existing_bookings)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Seats already booked: {booked_seat_ids}"
+            )
+        
         new_booking = Booking(
             user_id=request.state.user_id,
-            movie_id=booking.movie_id,
-            theater_id=booking.theater_id,
+            # movie_id=is_showing_exists.movie_id,
+            # theater_id=is_showing_exists.theater_id,
             showing_id=booking.showing_id,
-            seats_id=booking.seats_id,
             total_price=booking.total_price,
-            status=booking_status,
-            booking_number=booking_number,
+            status=BookingStatus.CONFIRMED,
+            booking_number=str(uuid.uuid4()),
         )
 
         db.add(new_booking)
+        db.flush()
+
+        for seat_id in booking.seats_ids:
+            booking_seat = BookingSeat(
+                booking_id=new_booking.id,
+                seat_id=seat_id,
+                showing_id=booking.showing_id
+            )
+            db.add(booking_seat)
         db.commit()
         db.refresh(new_booking)
 
@@ -61,20 +71,6 @@ def create_booking(booking: BookingCreate, request: Request,db: Session = Depend
 def get_all_bookings(db: Session = Depends(get_db)) -> List[BookingResponse]:
     try:
         bookings = db.execute(select(Booking).options(
-            joinedload(Booking.movie).load_only(
-                Movie.id,
-                Movie.title,
-                Movie.duration_minutes,
-                Movie.genre,
-                Movie.rating,
-                Movie.poster_url
-            ),
-            joinedload(Booking.theater).load_only(
-                Theater.id,
-                Theater.name,
-                Theater.location,
-                Theater.city
-            ),
             joinedload(Booking.showing).load_only(
                 Showing.id,
                 Showing.movie_id,
@@ -82,7 +78,7 @@ def get_all_bookings(db: Session = Depends(get_db)) -> List[BookingResponse]:
                 Showing.show_start_datetime,
                 Showing.show_end_datetime
             ),
-            joinedload(Booking.seats).load_only(
+            joinedload(Booking.booking_seats).joinedload(BookingSeat.seat).load_only(
                 Seat.id,
                 Seat.seat_number,
                 Seat.row,

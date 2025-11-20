@@ -30,13 +30,8 @@ class Booking(Base):
 
     __tablename__ = "bookings"
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    movie_id = Column(UUID(as_uuid=True), ForeignKey("movies.id"), nullable=False)
-
-    theater_id = Column(UUID(as_uuid=True), ForeignKey("theaters.id"), nullable=False)
-
+   
     showing_id = Column(UUID(as_uuid=True), ForeignKey("showings.id"), nullable=False)
-
-    seats_id = Column(UUID(as_uuid=True), ForeignKey("seats.id"), nullable=False)
 
     user_id = Column(UUID(as_uuid=True), nullable=False)
     
@@ -51,7 +46,7 @@ class Booking(Base):
     )
 
     # Relationships
-    movie = relationship("Movie", back_populates="bookings")
-    theater = relationship("Theater", back_populates="bookings")
+    # movie = relationship("Movie", back_populates="bookings")
+    # theater = relationship("Theater", back_populates="bookings")
     showing = relationship("Showing", back_populates="bookings")
-    seats = relationship("Seat", back_populates="bookings")
+    booking_seats = relationship("BookingSeat", back_populates="booking", cascade="all, delete-orphan")

@@ -42,4 +42,4 @@ class Movie(Base):
     showings = relationship(
         "Showing", back_populates="movie", cascade="all, delete-orphan"
     )
-    bookings = relationship("Booking", back_populates="movie",cascade="all, delete-orphan")
+    # bookings = relationship("Booking", back_populates="movie",cascade="all, delete-orphan")

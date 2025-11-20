@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 import models
-from api import theaters, movies, showings, seats, booking
+from api import theaters, movies, showings, seats, booking, booking_seats
 from core.utils import auth_guard
 # Configure logging
 logging.basicConfig(
@@ -73,6 +73,7 @@ routes = [
     (showings.router, "/showings", ["showings"], [Depends(auth_guard)]),
     (seats.router, "/seats", ["seats"], [Depends(auth_guard)]),
     (booking.router, "/bookings", ["bookings"], [Depends(auth_guard)]),
+    (booking_seats.router, "/booking_seats", ["booking_seats"], [Depends(auth_guard)]),
 ]
 
 for router, prefix, tags, dependencies in routes:

@@ -34,8 +34,8 @@ class ShowingBrief(BaseModel):
     movie: Optional[MovieBrief] = None
 
 class SeatCreate(BaseModel):
-    # theater_id: UUID
-    showing_id: UUID
+    theater_id: UUID
+    # showing_id: UUID
     seat_number: str
     row: str
     column: str
@@ -44,8 +44,8 @@ class SeatCreate(BaseModel):
 class SeatCreateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    # theater_id: UUID
-    showing_id: UUID
+    theater_id: UUID
+    # showing_id: UUID
     seat_number: str
     row: str
     column: str
@@ -57,13 +57,13 @@ class SeatCreateResponse(BaseModel):
 class SeatResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    # theater_id: UUID
-    showing_id: UUID
+    theater_id: UUID
+    # showing_id: UUID
     seat_number: str
     row: str
     column: str
     seat_type: SeatType
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    theater: Optional[TheaterBrief] = None
-    showing: Optional[ShowingBrief] = None
+    # theater: Optional[TheaterBrief] = None
+    # showing: Optional[ShowingBrief] = None

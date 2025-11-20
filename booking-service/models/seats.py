@@ -19,8 +19,8 @@ class Seat(Base):
 
     __tablename__ = "seats"
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    # theater_id = Column(UUID(as_uuid=True), ForeignKey("theaters.id"), nullable=False)
-    showing_id = Column(UUID(as_uuid=True), ForeignKey("showings.id"), nullable=False)
+    theater_id = Column(UUID(as_uuid=True), ForeignKey("theaters.id"), nullable=False)
+    # showing_id = Column(UUID(as_uuid=True), ForeignKey("showings.id"), nullable=False)
     seat_number = Column(String(255), nullable=False)
     row = Column(String(255), nullable=False) # A-Z
     column = Column(String(255), nullable=False) # 1-100
@@ -32,8 +32,9 @@ class Seat(Base):
 
     # Relationships
     # theater = relationship("Theater", back_populates="seats")
-    bookings = relationship("Booking", back_populates="seats")
-    showing = relationship("Showing", back_populates="seats", primaryjoin="Seat.showing_id == Showing.id")
+    booking_seats = relationship("BookingSeat", back_populates="seat",cascade="all, delete-orphan")
+    # showing = relationship("Showing", back_populates="seats", primaryjoin="Seat.showing_id == Showing.id")
+    theater = relationship("Theater", back_populates="seats")
     
 
     # TODO: Remove this once the schema is updated to use the movie and theater relationships
