@@ -13,11 +13,11 @@ class BookingSeatCreate(BaseModel):
 class BookingSeatResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    booking_id: UUID
+    # booking_id: UUID
     seat_id: UUID
     showing_id: UUID
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
-    booking: Optional[BookingResponse] = None
+    # booking: Optional[BookingResponse] = None
     seat: Optional[SeatResponse] = None

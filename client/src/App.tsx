@@ -58,7 +58,7 @@ function App() {
           }
         /> */}
         <Route
-          path="/showings/:showing_id/seats"
+          path="/:theater_id/showings/:showing_id/seats"
           element={
             <ProtectedRoute>
               <Seats />

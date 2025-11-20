@@ -56,8 +56,8 @@ const getShowings = async (theater_id: string, movie_id: string) => {
   return response.data;
 };
 
-const getSeats = async (showing_id: string) => {
-  const response = await bookingApi.get(`/seats/${showing_id}`);
+const getSeats = async (theater_id: string) => {
+  const response = await bookingApi.get(`/seats/${theater_id}`);
   return response.data;
 };
 

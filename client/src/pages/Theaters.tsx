@@ -62,7 +62,9 @@ const Theaters = () => {
             <div className="flex gap-2 mt-4">
               {showings[theater.id].map((showing: Showing) => (
                 <div
-                  onClick={() => navigate(`/showings/${showing.id}/seats`)}
+                  onClick={() =>
+                    navigate(`/${theater.id}/showings/${showing.id}/seats`)
+                  }
                   key={showing.id}
                   className="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden hover:shadow-md transition flex gap-2 p-4 flex-col"
                 >

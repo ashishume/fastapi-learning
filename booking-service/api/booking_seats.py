@@ -30,9 +30,9 @@ def create_booking_seat(booking: BookingSeatCreate, request: Request,db: Session
     return BookingSeatResponse.model_validate(new_booking_seat)
         
 
-@router.get("/",status_code=status.HTTP_200_OK,summary="Get all booking seats",response_model=List[BookingSeatResponse])
-def get_all_booking_seats(db: Session = Depends(get_db)) -> List[BookingSeatResponse]:
-    booking_seats = db.execute(select(BookingSeat)).scalars().all()
+@router.get("/{showing_id}",status_code=status.HTTP_200_OK,summary="Get all booking seats",response_model=List[BookingSeatResponse])
+def get_all_booking_seats(showing_id:str,db: Session = Depends(get_db)) -> List[BookingSeatResponse]:
+    booking_seats = db.execute(select(BookingSeat).where(BookingSeat.showing_id==showing_id)).scalars().all()
     return [BookingSeatResponse.model_validate(booking_seat) for booking_seat in booking_seats]
    
 
