@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 import models
-from api import theaters, movies, showings, seats, booking, booking_seats
+from api.v1.routes import theaters, movies, showings, seats, booking, booking_seats
 from core.utils import auth_guard
 # Configure logging
 logging.basicConfig(
