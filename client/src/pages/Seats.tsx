@@ -1,48 +1,36 @@
-import { createBooking, getSeats } from "../api";
+import { createBooking, getBookingSeats, getSeats } from "../api";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { Seat } from "../api/models";
+import type { BookingSeat, Seat } from "../api/models";
+import { useToast } from "../context/ToastContext";
 
 const Seats = () => {
-  const { showing_id } = useParams();
+  const { theater_id, showing_id } = useParams();
+  const { success, error } = useToast();
+
+  const SEAT_PRICE = 100;
   const [seats, setSeats] = useState<Seat[]>([]);
-  const [selectedSeats, setSelectedSeats] = useState<
-    { row: string; column: string }[]
-  >([]);
+  const [bookedSeats, setBookedSeats] = useState<BookingSeat[]>([]);
+  const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   useEffect(() => {
     async function load() {
-      const seats = await getSeats(showing_id || "");
+      const bookingSeats = await getBookingSeats(showing_id || "");
+      setBookedSeats(bookingSeats);
+      const seats = await getSeats(theater_id || "");
+      let result: any = {};
+      seats.forEach((seat: Seat) => {
+        if (!result[seat.row]) {
+          result[seat.row] = [];
+          result[seat.row].push(seat);
+        } else {
+          result[seat.row].push(seat);
+        }
+      });
 
-      const seatNumbers = seats.map((seat: Seat) => seat.seat_number);
-      setSeats(seatNumbers);
+      setSeats(result);
     }
     load();
-  }, [showing_id]);
-
-  const seatColumns = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
-  const seatRows = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-    "19",
-    "20",
-    "21",
-  ];
+  }, [theater_id, bookedSeats]);
 
   const seatTypes = {
     REGULAR: "regular",
@@ -51,99 +39,61 @@ const Seats = () => {
     RECLINER: "recliner",
   };
 
-  const seatsLayout = {
-    [seatTypes.REGULAR]: {
-      "1": "regular",
-      "2": "regular",
-      "3": "regular",
-      "4": "regular",
-      "5": "regular",
-      "6": "regular",
-      "7": "regular",
-    },
-    [seatTypes.VIP]: {
-      "1": "regular",
-      "2": "regular",
-      "3": "regular",
-      "4": "regular",
-      "5": "regular",
-      "6": "regular",
-      "7": "regular",
-    },
-    [seatTypes.RECLINER]: {
-      "1": "regular",
-      "2": "regular",
-      "3": "regular",
-      "4": "regular",
-      "5": "regular",
-      "6": "regular",
-      "7": "regular",
-    },
-    [seatTypes.PREMIUM]: {
-      "1": "regular",
-      "2": "regular",
-      "3": "regular",
-      "4": "regular",
-      "5": "regular",
-      "6": "regular",
-      "7": "regular",
-    },
-  };
-
-  const handleSeatClick = (row: string, column: string) => {
-    if (
-      selectedSeats.some((seat) => seat.row === row && seat.column === column)
-    ) {
+  const handleSeatClick = (seat: Seat) => {
+    if (selectedSeats.some((s) => s.seat_number === seat.seat_number)) {
       setSelectedSeats(
-        selectedSeats.filter(
-          (seat) => !(seat.row === row && seat.column === column)
-        )
+        selectedSeats.filter((s) => s.seat_number !== seat.seat_number)
       );
     } else {
-      setSelectedSeats([...selectedSeats, { row: row, column: column }]);
+      setSelectedSeats([...selectedSeats, seat]);
     }
   };
 
   const submitBooking = async () => {
-    const bookingStatus = await createBooking(
-      selectedSeats.map((seat) => ({
-        showing_id: showing_id || "",
-        seat_number: `${seat.row}${seat.column}`,
-        row: seat.row,
-        column: seat.column,
-        seat_type: seatTypes.REGULAR,
-      }))
-    );
-    if (bookingStatus.status === "success") {
-      // navigate("/bookings");
+    const bookingStatus = await createBooking({
+      showing_id: showing_id || "",
+      seats_ids: selectedSeats.map((seat) => seat.id),
+      total_price: selectedSeats.reduce((acc, seat) => acc + SEAT_PRICE, 0),
+    });
 
-      alert("Booking successful");
+    if (bookingStatus.status === "confirmed") {
+      // alert("Booking successful");
+      success("Booking successful");
+      setSelectedSeats([]);
+
+      const bookingSeats = await getBookingSeats(showing_id || "");
+      setBookedSeats(bookingSeats);
     } else {
-      alert("Booking failed");
+      error(bookingStatus.message);
     }
   };
 
   return (
     <div>
-      <div className="grid grid-cols-26 gap-4 w-full">
-        {seatRows.map((row, i) => (
+      <div className={`flex gap-4 w-full`}>
+        {Object.keys(seats).map((row: any) => (
           <div key={row} className="flex flex-col gap-1">
-            {seatColumns.map((column, j) => (
-              <>
+            {(seats[row] as any).map((seat: Seat) => (
+              <div key={`${seat.seat_number}`}>
                 <div
-                  onClick={() => handleSeatClick(row, column)}
-                  key={`${row}-${column}`}
-                  className={`w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center gap-2 m-1 cursor-pointer ${
-                    selectedSeats.some(
-                      (seat) => seat.row == row && seat.column == column
-                    )
-                      ? "bg-blue-500! text-white"
+                  onClick={() => handleSeatClick(seat)}
+                  key={`${seat.seat_number}`}
+                  className={`w-12 h-12 bg-gray-200 cursor-pointer rounded-xl flex items-center justify-center gap-2 m-1 
+                    ${
+                      selectedSeats.some(
+                        (s) => s.seat_number === seat.seat_number
+                      )
+                        ? "bg-blue-500! text-white"
+                        : ""
+                    }  ${
+                    bookedSeats.some((s) => s.seat_id === seat.id)
+                      ? "bg-red-200! text-gray-500 disabled:cursor-not-allowed"
                       : ""
                   }`}
                 >
-                  {row}
+                  {`${seat.seat_number}`}
                 </div>
-              </>
+              </div>
             ))}
           </div>
         ))}

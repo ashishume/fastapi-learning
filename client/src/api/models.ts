@@ -94,3 +94,12 @@ export interface Seat {
     show_end_datetime: string;
   };
 }
+
+export interface BookingSeat {
+  id: string;
+  seat_id: string;
+  showing_id: string;
+  created_at: string;
+  updated_at: string;
+  seat: Seat;
+}

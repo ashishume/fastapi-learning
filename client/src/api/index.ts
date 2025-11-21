@@ -61,21 +61,16 @@ const getSeats = async (theater_id: string) => {
   return response.data;
 };
 
-// const getBooking = async (seats_id: string) => {
-//   const response = await bookingApi.get(`/seats/${seats_id}/bookings`);
-//   return response.data;
-// };
-
-const createBooking = async (
-  seats: {
-    showing_id: string;
-    seat_number: string;
-    row: string;
-    column: string;
-    seat_type: string;
-  }[]
-) => {
-  const response = await bookingApi.post(`/bookings`, { seats });
+const getBookingSeats = async (showing_id: string) => {
+  const response = await bookingApi.get(`/booking_seats/${showing_id}`);
+  return response.data;
+};
+const createBooking = async (booking: {
+  showing_id: string;
+  seats_ids: string[];
+  total_price: number;
+}) => {
+  const response = await bookingApi.post(`/bookings`, booking);
   return response.data;
 };
 export {
@@ -90,4 +85,5 @@ export {
   getSeats,
   getShowings,
   createBooking,
+  getBookingSeats,
 };
