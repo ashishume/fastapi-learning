@@ -143,17 +143,88 @@ services:
   #   restart: unless-stopped
 
   # Booking Service Database
-  booking-db:
-    image: postgres:16-alpine
-    container_name: booking-db
+  # booking-db:
+  #   image: postgres:16-alpine
+  #   container_name: booking-db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: booking_service
+  #   ports:
+  #     - "5436:5432"
+  #   volumes:
+  #     - booking-db-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - microservices-network
+
+  # Booking Service
+  # booking-service:
+  #   build:
+  #     context: ./booking-service
+  #     dockerfile: Dockerfile
+  #   container_name: booking-service
+  #   ports:
+  #     - "8003:8003"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: booking_service
+  #     POSTGRES_HOST: booking-db
+  #     POSTGRES_PORT: 5432
+  #     PRODUCT_SERVICE_URL: http://product-service:8001
+  #     AUTH_SERVICE_URL: http://auth-service:8000
+  #     TOKEN_SECRET: dev-secret-key-change-in-production
+  #   depends_on:
+  #     booking-db:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./booking-service:/app
+  #   networks:
+  #     - microservices-network
+  #   restart: unless-stopped
+
+  # Food Service
+  food-service:
+    build:
+      context: ./food-service
+      dockerfile: Dockerfile
+    container_name: food-service
+    ports:
+      - "8004:8004"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: booking_service
-    ports:
-      - "5436:5432"
+      POSTGRES_DB: food_service
+      POSTGRES_HOST: food-db
+      POSTGRES_PORT: 5432
+      AUTH_SERVICE_URL: http://auth-service:8000
+      TOKEN_SECRET: dev-secret-key-change-in-production
+    depends_on:
+      food-db:
+        condition: service_healthy
     volumes:
-      - booking-db-data:/var/lib/postgresql/data
+      - ./food-service:/app
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Food Service Database
+  food-db:
+    image: postgres:16-alpine
+    container_name: food-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: food_service
+    ports:
+      - "5437:5432"
+    volumes:
+      - food-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -161,50 +232,23 @@ services:
       retries: 5
     networks:
       - microservices-network
-
-  # Booking Service
-  booking-service:
-    build:
-      context: ./booking-service
-      dockerfile: Dockerfile
-    container_name: booking-service
-    ports:
-      - "8003:8003"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: booking_service
-      POSTGRES_HOST: booking-db
-      POSTGRES_PORT: 5432
-      PRODUCT_SERVICE_URL: http://product-service:8001
-      AUTH_SERVICE_URL: http://auth-service:8000
-      TOKEN_SECRET: dev-secret-key-change-in-production
-    depends_on:
-      booking-db:
-        condition: service_healthy
-    volumes:
-      - ./booking-service:/app
-    networks:
-      - microservices-network
-    restart: unless-stopped
-
   # Client (React Frontend)
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: client
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_AUTH_SERVICE_URL=http://localhost:8000
-      - VITE_BOOKING_SERVICE_URL=http://localhost:8003
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    networks:
-      - microservices-network
-    restart: unless-stopped
+  # client:
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   container_name: client
+  #   ports:
+  #     - "5173:5173"
+  #   environment:
+  #     - VITE_AUTH_SERVICE_URL=http://localhost:8000
+  #     - VITE_BOOKING_SERVICE_URL=http://localhost:8003
+  #   volumes:
+  #     - ./client:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - microservices-network
+  #   restart: unless-stopped
 
   # Redis Cache
   redis:
@@ -233,3 +277,4 @@ volumes:
   inventory-db-data:
   booking-db-data:
   redis-data:
+  food-db-data:
