@@ -67,3 +67,11 @@ class SeatResponse(BaseModel):
     updated_at: datetime.datetime
     # theater: Optional[TheaterBrief] = None
     # showing: Optional[ShowingBrief] = None
+
+class SeatBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    seat_number: str
+    row: str
+    column: str
+    seat_type: SeatType

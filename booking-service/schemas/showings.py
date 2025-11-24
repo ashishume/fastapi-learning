@@ -47,3 +47,10 @@ class ShowingResponse(BaseModel):
     updated_at: datetime.datetime
     movie: Optional[MovieBrief] = None
     theater: Optional[TheaterBrief] = None
+
+
+class ShowingBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    movie: Optional[MovieBrief] = None
+    theater: Optional[TheaterBrief] = None

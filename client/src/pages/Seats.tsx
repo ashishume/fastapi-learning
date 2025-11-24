@@ -30,7 +30,7 @@ const Seats = () => {
       setSeats(result);
     }
     load();
-  }, [theater_id, bookedSeats]);
+  }, [theater_id]);
 
   const seatTypes = {
     REGULAR: "regular",
