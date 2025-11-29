@@ -11,6 +11,9 @@ from database import Base, engine
 import models
 from api.v1.routes import categories, restaurants
 from api.v1.routes import foods
+from api.v1.routes import orders
+# from api.v1.routes import food_orders
+from api.v1.routes import menu
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -72,6 +75,8 @@ routes = [
     (categories.router, "/categories", ["categories"], [Depends(auth_guard)]),
     (restaurants.router, "/restaurants", ["restaurants"], [Depends(auth_guard)]),
     (foods.router, "/foods", ["foods"], [Depends(auth_guard)]),
+    (orders.router, "/orders", ["orders"], [Depends(auth_guard)]),
+    (menu.router, "/menu", ["menu"], [Depends(auth_guard)]),
 ]
 
 for router, prefix, tags, dependencies in routes:

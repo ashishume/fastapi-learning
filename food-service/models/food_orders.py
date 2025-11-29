@@ -18,4 +18,4 @@ class FoodOrder(Base):
 
     # Relationships
     order = relationship("Order", back_populates="food_orders")
-    menu = relationship("Menu", back_populates="food_orders")
+    menus = relationship("Menu", back_populates="food_orders")

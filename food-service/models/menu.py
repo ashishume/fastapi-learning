@@ -6,9 +6,6 @@ from database import Base
 
 class Menu(Base):
     __tablename__ = "menu"
-    __table_args__ = (
-        UniqueConstraint('restaurant_id', 'food_id', name='uq_restaurant_food'),
-    )
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     restaurant_id = Column(UUID(as_uuid=True), ForeignKey("restaurant.id"), nullable=False)
     food_id = Column(UUID(as_uuid=True), ForeignKey("food.id"), nullable=False)
@@ -22,4 +19,4 @@ class Menu(Base):
     restaurant = relationship("Restaurant", back_populates="menus")
     food = relationship("Food", back_populates="menus")
     category = relationship("Category", back_populates="menus")
-    food_orders = relationship("FoodOrder", back_populates="menu")
+    food_orders = relationship("FoodOrder", back_populates="menus")
