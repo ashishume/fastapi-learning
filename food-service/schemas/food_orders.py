@@ -1,14 +1,13 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from sqlalchemy import UUID
-
+import uuid
 
 
 class FoodOrderSchema(BaseModel):
-    id: UUID
-    order_id: UUID
-    menu_id: UUID
+    id: uuid.UUID
+    order_id: uuid.UUID
+    menu_id: uuid.UUID
     quantity: int
     total_price: float
     created_at: datetime
@@ -16,9 +15,9 @@ class FoodOrderSchema(BaseModel):
 
 
 class FoodOrderResponse(BaseModel):
-    id: UUID
-    order_id: UUID
-    menu_id: UUID
+    id: uuid.UUID
+    order_id: uuid.UUID
+    menu_id: uuid.UUID
     quantity: int
     total_price: float  
     created_at: datetime
@@ -28,7 +27,7 @@ class FoodOrderResponse(BaseModel):
         from_attributes = True
 
 class FoodOrderCreate(BaseModel):
-    order_id: UUID
-    menu_id: UUID
+    order_id: uuid.UUID
+    menu_id: uuid.UUID
     quantity: int
     total_price: float

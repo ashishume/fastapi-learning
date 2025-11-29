@@ -1,10 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from sqlalchemy import UUID
-
+import uuid
 class RestaurantSchema(BaseModel):
-    id: UUID
+    id: uuid.UUID
     name: str
     image_url: str
     description: str
@@ -15,7 +14,7 @@ class RestaurantSchema(BaseModel):
 
 
 class RestaurantResponse(BaseModel):    
-    id: UUID
+    id: uuid.UUID
     name: str
     description: str
     address: str

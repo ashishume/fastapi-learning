@@ -5,9 +5,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi import Depends
+from core.utils import auth_guard
 from database import Base, engine
 import models
+from api.v1.routes import categories
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -66,7 +68,7 @@ app.add_middleware(
 
 # Include routers
 routes = [
-    # (booking.router, "/bookings", ["bookings"], [Depends(auth_guard)]),
+    (categories.router, "/categories", ["categories"], [Depends(auth_guard)]),
 ]
 
 for router, prefix, tags, dependencies in routes:

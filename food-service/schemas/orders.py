@@ -1,24 +1,23 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from sqlalchemy import UUID
-
-
+import uuid
+from models.orders import OrderStatus
 class OrderSchema(BaseModel):
-    id: UUID
-    user_id: UUID
+    id: uuid.UUID
+    user_id: uuid.UUID
     order_number: str
     total_price: float
-    status: str
+    status: OrderStatus
     created_at: datetime
     updated_at: datetime
 
 
 class OrderResponse(BaseModel):
-    id: UUID
+    id: uuid.UUID
     order_number: str
     total_price: float
-    status: str
+    status: OrderStatus
     created_at: datetime
     updated_at: datetime
 
@@ -26,7 +25,7 @@ class OrderResponse(BaseModel):
         from_attributes = True
 
 class OrderCreate(BaseModel):
-    user_id: UUID
+    user_id: uuid.UUID
     order_number: str
     total_price: float
-    status: str
+    status: OrderStatus

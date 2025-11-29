@@ -1,29 +1,28 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from sqlalchemy import UUID
-
+import uuid
 class FoodSchema(BaseModel):
-    id: UUID
+    id: uuid.UUID
     name: str
     description: str
     price: float
     image_url: str
     is_vegetarian: bool
-    category_id: int
+    category_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
 
 
 class FoodResponse(BaseModel):
-    id: UUID
+    id: uuid.UUID
     name: str
     description: str
     price: float
     image_url: str
     is_vegetarian: bool
-    category_id: int
+    category_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
@@ -36,4 +35,4 @@ class FoodCreate(BaseModel):
     price: float
     image_url: str
     is_vegetarian: bool
-    category_id: int
+    category_id: uuid.UUID

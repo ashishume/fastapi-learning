@@ -273,8 +273,8 @@ networks:
 
 volumes:
   auth-db-data:
-  product-db-data:
-  inventory-db-data:
-  booking-db-data:
+  # product-db-data:
+  # inventory-db-data:
+  # booking-db-data:
   redis-data:
   food-db-data:
