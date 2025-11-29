@@ -9,7 +9,7 @@ from fastapi import Depends
 from core.utils import auth_guard
 from database import Base, engine
 import models
-from api.v1.routes import categories
+from api.v1.routes import categories, restaurants
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -69,6 +69,7 @@ app.add_middleware(
 # Include routers
 routes = [
     (categories.router, "/categories", ["categories"], [Depends(auth_guard)]),
+    (restaurants.router, "/restaurants", ["restaurants"], [Depends(auth_guard)]),
 ]
 
 for router, prefix, tags, dependencies in routes:
