@@ -1,10 +1,11 @@
+import uuid
 from fastapi import APIRouter
 from schemas.categories import CategoryCreate, CategoryResponse
 # from models.categories import Category
 from database import get_db
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from services.categories import CategoryService
+from services.categories_service import CategoryService
 # from repository.categories import CategoryRepository
 from typing import List
 router=APIRouter()
@@ -32,3 +33,16 @@ def get_all_categories(db: Session = Depends(get_db)) -> List[CategoryResponse]:
         raise
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting categories: {e}")
+
+
+
+@router.get("/{category_id}",status_code=status.HTTP_200_OK,summary="Get a category by id",response_model=CategoryResponse)
+def get_category_by_id(category_id: uuid.UUID, db: Session = Depends(get_db)) -> CategoryResponse:
+    try:
+        category_service = CategoryService(db)
+        category = category_service.get_category_by_id(category_id)
+        if not category:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Category not found")
+        return CategoryResponse.model_validate(category)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting category: {e}")
