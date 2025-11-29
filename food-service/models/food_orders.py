@@ -10,7 +10,7 @@ class FoodOrder(Base):
     order_id = Column(UUID(as_uuid=True), ForeignKey("order.id"), nullable=False)
     menu_id = Column(UUID(as_uuid=True), ForeignKey("menu.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
-    total_price = Column(Float, nullable=False)
+    # total_price = Column(Float, nullable=False)
 
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

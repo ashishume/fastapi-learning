@@ -12,7 +12,6 @@ import models
 from api.v1.routes import categories, restaurants
 from api.v1.routes import foods
 from api.v1.routes import orders
-# from api.v1.routes import food_orders
 from api.v1.routes import menu
 # Configure logging
 logging.basicConfig(
