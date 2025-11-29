@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from schemas.categories import CategoryResponse
 import uuid
 class FoodSchema(BaseModel):
     id: uuid.UUID
@@ -22,9 +23,9 @@ class FoodResponse(BaseModel):
     price: float
     image_url: str
     is_vegetarian: bool
-    category_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
+    category: CategoryResponse
 
     class Config:
         from_attributes = True

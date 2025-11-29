@@ -10,6 +10,7 @@ from core.utils import auth_guard
 from database import Base, engine
 import models
 from api.v1.routes import categories, restaurants
+from api.v1.routes import foods
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -70,6 +71,7 @@ app.add_middleware(
 routes = [
     (categories.router, "/categories", ["categories"], [Depends(auth_guard)]),
     (restaurants.router, "/restaurants", ["restaurants"], [Depends(auth_guard)]),
+    (foods.router, "/foods", ["foods"], [Depends(auth_guard)]),
 ]
 
 for router, prefix, tags, dependencies in routes:
