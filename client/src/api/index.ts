@@ -1,6 +1,7 @@
 import axios from "axios";
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL;
 const BOOKING_BASE_URL = import.meta.env.VITE_BOOKING_API_URL;
+const FOOD_BASE_URL = import.meta.env.VITE_FOOD_API_URL;
 
 const authApi = axios.create({
   baseURL: AUTH_BASE_URL,
@@ -9,6 +10,11 @@ const authApi = axios.create({
 
 const bookingApi = axios.create({
   baseURL: BOOKING_BASE_URL,
+  withCredentials: true, // Enable sending cookies with requests
+});
+
+const foodApi = axios.create({
+  baseURL: FOOD_BASE_URL,
   withCredentials: true, // Enable sending cookies with requests
 });
 
@@ -73,6 +79,35 @@ const createBooking = async (booking: {
   const response = await bookingApi.post(`/bookings`, booking);
   return response.data;
 };
+
+const createWebSocket = async () => {
+  // Connect directly to the WebSocket endpoint
+  const wsUrl = "ws://localhost:8004/ws/";
+  const socket = new WebSocket(wsUrl);
+
+  socket.onopen = () => {
+    console.log("WebSocket connected");
+  };
+
+  socket.onmessage = (event) => {
+    console.log("WebSocket message received", event.data);
+  };
+
+  socket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+  };
+
+  socket.onclose = () => {
+    console.log("WebSocket connection closed");
+  };
+
+  return socket;
+};
+
+const sendMessage = async (message: string) => {
+  const response = await foodApi.post(`/ws`, { message });
+  return response.data;
+};
 export {
   authApi,
   bookingApi,
@@ -86,4 +121,6 @@ export {
   getShowings,
   createBooking,
   getBookingSeats,
+  createWebSocket,
+  sendMessage,
 };

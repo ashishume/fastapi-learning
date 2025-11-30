@@ -13,6 +13,7 @@ from api.v1.routes import categories, restaurants
 from api.v1.routes import foods
 from api.v1.routes import orders
 from api.v1.routes import menu
+from api.v1.routes import web_server
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -76,6 +77,7 @@ routes = [
     (foods.router, "/foods", ["foods"], [Depends(auth_guard)]),
     (orders.router, "/orders", ["orders"], [Depends(auth_guard)]),
     (menu.router, "/menu", ["menu"], [Depends(auth_guard)]),
+    (web_server.router, "/ws", ["ws"], []),
 ]
 
 for router, prefix, tags, dependencies in routes:
