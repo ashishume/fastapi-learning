@@ -25,3 +25,6 @@ class MenuRepository:
 
     def get_all_menus(self) -> List[MenuResponse]:
         return self.db.execute(select(Menu).options(joinedload(Menu.food), joinedload(Menu.restaurant), joinedload(Menu.category))).scalars().all()
+
+    def get_all_menus_by_restaurant_id(self,restaurant_id:uuid.UUID) -> List[MenuResponse]:
+        return self.db.execute(select(Menu).options(joinedload(Menu.food), joinedload(Menu.restaurant), joinedload(Menu.category)).where(Menu.restaurant_id == restaurant_id)).scalars().all()

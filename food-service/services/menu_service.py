@@ -15,3 +15,6 @@ class MenuService:
 
     def get_all_menus(self) -> List[MenuResponse]:
         return self.menu_repository.get_all_menus()
+
+    def get_all_menus_by_restaurant_id(self,restaurant_id:uuid.UUID) -> List[MenuResponse]:
+        return self.menu_repository.get_all_menus_by_restaurant_id(restaurant_id)

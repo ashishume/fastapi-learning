@@ -17,6 +17,16 @@ def create_menu(menu: MenuCreate, db: Session = Depends(get_db)) -> MenuFoodCrea
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error creating menu: {e}")
 
+
+@router.get("/restaurants/{restaurant_id}",status_code=status.HTTP_200_OK,summary="Get all menus by restaurant id",response_model=List[MenuResponse])
+def get_all_menus_by_restaurant_id(restaurant_id: uuid.UUID, db: Session = Depends(get_db)) -> List[MenuResponse]:
+    try:
+        menu_service = MenuService(db)
+        menus = menu_service.get_all_menus_by_restaurant_id(restaurant_id)
+        return [MenuResponse.model_validate(menu) for menu in menus]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error getting menus: {e}")
+
 @router.get("/{menu_id}",status_code=status.HTTP_200_OK,summary="Get a menu by id",response_model=MenuResponse)
 def get_menu_by_id(menu_id: uuid.UUID, db: Session = Depends(get_db)) -> MenuResponse:
     try:
