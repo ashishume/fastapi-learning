@@ -1,5 +1,6 @@
 """Main FastAPI application entry point."""
 
+import os
 import logging
 from contextlib import asynccontextmanager
 
@@ -14,6 +15,16 @@ from api.v1.routes import foods
 from api.v1.routes import orders
 from api.v1.routes import menu
 from api.v1.routes import web_server
+
+# Import sharding module (optional - enable with ENABLE_SHARDING=true)
+ENABLE_SHARDING = os.getenv("ENABLE_SHARDING", "false").lower() == "true"
+
+if ENABLE_SHARDING:
+    from core.db_sharding import (
+        get_shard_manager,
+        create_tables_on_all_shards,
+    )
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -33,16 +44,41 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("Starting up application...")
-    logger.info("Creating database tables...")
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created successfully")
+    
+    if ENABLE_SHARDING:
+        # Sharded database setup
+        logger.info("Sharding enabled - initializing shards...")
+        shard_manager = get_shard_manager()
+        logger.info(f"Configured {shard_manager.num_shards} database shard(s)")
+        
+        # Create tables on all shards
+        create_tables_on_all_shards(Base)
+        logger.info("Database tables created on all shards")
+        
+        # Health check
+        health = shard_manager.health_check()
+        for shard_id, is_healthy in health.items():
+            status = "healthy" if is_healthy else "unhealthy"
+            logger.info(f"Shard {shard_id}: {status}")
+    else:
+        # Standard single database setup
+        logger.info("Creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
 
     yield
 
     # Shutdown
     logger.info("Shutting down application...")
-    logger.info("Closing database connections...")
-    engine.dispose()
+    
+    if ENABLE_SHARDING:
+        logger.info("Disposing all shard connections...")
+        shard_manager = get_shard_manager()
+        shard_manager.dispose_all()
+    else:
+        logger.info("Closing database connections...")
+        engine.dispose()
+    
     logger.info("Application shutdown complete")
 
 
@@ -92,4 +128,26 @@ async def root():
         "message": "Welcome to Food Service",
         "status": "running",
         "docs": "/docs",
+        "sharding_enabled": ENABLE_SHARDING,
+    }
+
+
+@app.get("/health/shards", tags=["health"])
+async def shard_health():
+    """Check health status of all database shards."""
+    if not ENABLE_SHARDING:
+        return {
+            "sharding_enabled": False,
+            "message": "Sharding is not enabled. Set ENABLE_SHARDING=true to enable.",
+        }
+    
+    shard_manager = get_shard_manager()
+    health_status = shard_manager.health_check()
+    
+    return {
+        "sharding_enabled": True,
+        "total_shards": shard_manager.num_shards,
+        "shard_ids": shard_manager.shard_ids,
+        "health": {f"shard_{k}": "healthy" if v else "unhealthy" for k, v in health_status.items()},
+        "all_healthy": all(health_status.values()),
     }
