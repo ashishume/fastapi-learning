@@ -22,7 +22,7 @@ def verify_password(plain_pass: str, hashed_pass: str) -> bool:
 
 
 SECRET_KEY = os.getenv("TOKEN_SECRET", "admin1234@")
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30  # 30 days (43,200 minutes)
 ALGORITHM = "HS256"
 
 
