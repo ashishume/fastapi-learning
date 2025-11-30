@@ -1,253 +1,456 @@
 # FastAPI Microservices Project
 
-This project demonstrates a microservices architecture using FastAPI, where two independent services communicate with each other via HTTP/REST APIs.
+This project demonstrates a microservices architecture using FastAPI, featuring multiple independent services that communicate with each other via HTTP/REST APIs. The project includes authentication, food ordering, booking management, product catalog, and inventory management services.
 
 ## 📁 Project Structure
 
 ```
-Fast-api/
-├── fastapi_learning/          # Main Service (Port 8000)
-│   ├── api/
-│   │   ├── auth/              # Authentication endpoints
-│   │   └── endpoints/         # Items & Categories endpoints
-│   ├── core/                  # Database & utilities
+fastapi-learning/
+├── auth-service/             # Authentication Service (Port 8000)
+│   ├── api/auth/              # Authentication endpoints
+│   ├── core/                  # Database, middleware, utils
+│   ├── models/                # SQLAlchemy models (User)
+│   ├── schemas/               # Pydantic schemas
+│   ├── alembic/               # Database migrations
+│   └── main.py                # Main application
+│
+├── food-service/              # Food Service (Port 8004)
+│   ├── api/v1/routes/         # API routes
+│   │   ├── categories.py      # Category endpoints
+│   │   ├── restaurants.py     # Restaurant endpoints
+│   │   ├── foods.py           # Food items endpoints
+│   │   ├── menu.py            # Menu endpoints
+│   │   └── orders.py          # Order endpoints
+│   ├── services/              # Business logic layer
+│   ├── repository/            # Data access layer
 │   ├── models/                # SQLAlchemy models
 │   ├── schemas/               # Pydantic schemas
 │   └── main.py                # Main application
 │
-├── inventory-service/         # Inventory Service (Port 8001)
-│   ├── api/
-│   │   ├── inventory.py       # Inventory endpoints
-│   │   └── integration.py     # Integration with main service
-│   ├── services/
-│   │   └── fastapi_client.py  # Client for calling main service
+├── booking-service/           # Booking Service (Port 8003)
+│   ├── api/v1/                # API routes
 │   ├── models/                # SQLAlchemy models
-│   ├── schemas/               # Pydantic schemas
+│   ├── services/              # Business logic
 │   └── main.py                # Main application
 │
-├── MICROSERVICES_GUIDE.md     # Detailed architecture guide
-├── QUICKSTART.md              # Quick start instructions
-├── setup_microservices.sh     # Setup script
-├── test_microservices.py      # Test script
-└── Microservices.postman_collection.json  # Postman collection
+├── product-service/           # Product Service (Port 8001)
+│   ├── api/endpoints/         # Item & Category endpoints
+│   ├── core/                  # Database, middleware, rate limiting
+│   ├── models/                # SQLAlchemy models
+│   └── main.py                # Main application
+│
+├── inventory-service/         # Inventory Service (Port 8002)
+│   ├── api/                   # Inventory endpoints
+│   ├── models/                # SQLAlchemy models
+│   └── main.py                # Main application
+│
+├── client/                    # React Frontend
+│   ├── src/                   # React source code
+│   └── package.json           # Dependencies
+│
+├── docker-compose.yml         # Multi-service orchestration
+├── DOCKER_SETUP.md            # Docker documentation
+├── PROJECT_SUMMARY.md          # Comprehensive reference
+└── README.md                  # This file
 ```
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### Option 1: Docker Compose (Recommended)
+
+Start all services with a single command:
 
 ```bash
-./setup_microservices.sh
+docker-compose up -d
 ```
 
-### 2. Start Services
+This will start:
 
-**Terminal 1 - Main Service:**
+- **Auth Service** on `http://localhost:8000`
+- **Food Service** on `http://localhost:8004`
+- **Redis** on `localhost:6379`
+- All required PostgreSQL databases
+
+View logs:
 
 ```bash
-cd fastapi_learning
+docker-compose logs -f
+```
+
+Stop services:
+
+```bash
+docker-compose down
+```
+
+### Option 2: Local Development
+
+**Terminal 1 - Auth Service:**
+
+```bash
+cd auth-service
 source venv/bin/activate
 uvicorn main:app --reload --port 8000
 ```
 
-**Terminal 2 - Inventory Service:**
+**Terminal 2 - Food Service:**
 
 ```bash
-cd inventory-service
+cd food-service
 source venv/bin/activate
-uvicorn main:app --reload --port 8001
+uvicorn main:app --reload --port 8004
 ```
 
-### 3. Test Communication
-
-```bash
-python3 test_microservices.py
-```
+**Note**: Make sure PostgreSQL databases are running and environment variables are configured.
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Client / Browser                      │
-└────────────┬───────────────────────┬────────────────────┘
-             │                       │
-             ▼                       ▼
-   ┌─────────────────┐    ┌──────────────────┐
-   │ fastapi_learning│    │ inventory-service│
-   │   Port: 8000    │◄───│   Port: 8001     │
-   └─────────────────┘    └──────────────────┘
-             │                       │
-             ▼                       ▼
-   ┌─────────────────┐    ┌──────────────────┐
-   │  PostgreSQL DB  │    │  PostgreSQL DB   │
-   │   (main_db)     │    │   (inventory_db) │
-   └─────────────────┘    └──────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    Client / Browser (React)                      │
+└────────┬───────────────┬─────────────────┬─────────────────────┘
+         │               │                 │
+         ▼               ▼                 ▼
+   ┌──────────┐   ┌──────────┐    ┌──────────────┐
+   │   Auth   │   │  Food    │    │   Booking   │
+   │ Service  │   │ Service  │    │   Service   │
+   │ Port:8000│   │Port: 8004│    │  Port: 8003  │
+   └─────┬────┘   └─────┬────┘    └──────┬───────┘
+         │              │                 │
+         ▼              ▼                 ▼
+   ┌──────────┐   ┌──────────┐    ┌──────────────┐
+   │ auth_db  │   │ food_db  │    │ booking_db   │
+   │Port: 5435│   │Port: 5437│    │  Port: 5436  │
+   └──────────┘   └──────────┘    └──────────────┘
 ```
 
 ### Communication Flow
 
-1. **Direct Client Requests**: Clients can call either service directly
-2. **Inter-Service Communication**: Inventory service can call main service via HTTP
-3. **Service Client**: Uses `FastAPILearningClient` for type-safe communication
+1. **Client Requests**: React frontend communicates with backend services
+2. **Authentication**: All services validate JWT tokens via Auth Service
+3. **Inter-Service Communication**: Services communicate via HTTP/REST APIs
+4. **Service Isolation**: Each service has its own database
+5. **Redis Cache**: Used for rate limiting and caching (product-service)
 
 ## 🔑 Key Features
 
-### Main Service (fastapi_learning)
+### Auth Service (Port 8000)
 
-- ✅ User authentication (JWT)
-- ✅ Items management
-- ✅ Categories management
+- ✅ User registration and authentication
+- ✅ JWT token generation and validation
+- ✅ Password hashing with bcrypt (SHA-256 pre-hashing)
+- ✅ Role-based access control (SUPER_ADMIN, ADMIN, USER, MODERATOR)
+- ✅ HTTP-only cookie-based token storage
+- ✅ PostgreSQL database with Alembic migrations
+
+### Food Service (Port 8004)
+
+- ✅ **Categories Management**: Create and manage food categories
+- ✅ **Restaurants Management**: Restaurant CRUD operations
+- ✅ **Foods Management**: Food items with category relationships
+- ✅ **Menu Management**: Restaurant menus linking foods, restaurants, and categories
+- ✅ **Orders Management**: Food ordering system with user association
+- ✅ JWT authentication integration
+- ✅ Repository pattern for data access
+- ✅ Service layer for business logic
 - ✅ PostgreSQL database
-- ✅ Alembic migrations
 
-### Inventory Service
+### Product Service (Port 8001)
 
-- ✅ Inventory management
-- ✅ Integration with main service
-- ✅ Category validation from main service
-- ✅ Async HTTP client
-- ✅ Health check endpoints
+- ✅ Items and categories management
+- ✅ Rate limiting with Redis
+- ✅ Protected endpoints with JWT
+- ✅ Pagination support
+
+### Booking Service (Port 8003)
+
+- ✅ Movie theater booking system
+- ✅ Showings and seat management
+- ✅ Booking creation and management
+
+### Inventory Service (Port 8002)
+
+- ✅ Inventory tracking and management
+- ✅ Integration with Product Service
+- ✅ Category validation
 
 ### Inter-Service Communication
 
 - ✅ HTTP/REST API calls
 - ✅ Async operations with httpx
+- ✅ JWT token validation across services
 - ✅ Error handling and retries
 - ✅ Service health monitoring
-- ✅ Type-safe client library
 
 ## 📚 Documentation
 
-| Document                                                    | Description                      |
-| ----------------------------------------------------------- | -------------------------------- |
-| [QUICKSTART.md](QUICKSTART.md)                              | Get started in 5 minutes         |
-| [MICROSERVICES_GUIDE.md](MICROSERVICES_GUIDE.md)            | Comprehensive architecture guide |
-| [Postman Collection](Microservices.postman_collection.json) | API testing collection           |
+| Document                                                                                      | Description                     |
+| --------------------------------------------------------------------------------------------- | ------------------------------- |
+| [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)                                                      | Comprehensive project reference |
+| [DOCKER_SETUP.md](DOCKER_SETUP.md)                                                            | Docker deployment guide         |
+| [auth-service/README.md](auth-service/README.md)                                              | Auth service details            |
+| [product-service/README.md](product-service/README.md)                                        | Product service details         |
+| [Booking Service Postman Collection](booking-service/Booking_Service.postman_collection.json) | API testing collection          |
 
 ## 🔗 API Endpoints
 
-### Main Service (http://localhost:8000)
+### Auth Service (http://localhost:8000)
 
-| Endpoint         | Method   | Description           |
-| ---------------- | -------- | --------------------- |
-| `/`              | GET      | Health check          |
-| `/items`         | GET/POST | Items management      |
-| `/categories`    | GET/POST | Categories management |
-| `/auth/register` | POST     | User registration     |
-| `/auth/login`    | POST     | User login            |
+| Endpoint       | Method | Description              | Auth Required |
+| -------------- | ------ | ------------------------ | ------------- |
+| `/`            | GET    | Health check             | No            |
+| `/auth/`       | POST   | User registration        | No            |
+| `/auth/login`  | POST   | User login (sets cookie) | No            |
+| `/auth/logout` | POST   | User logout              | No            |
+| `/docs`        | GET    | Swagger UI documentation | No            |
 
-### Inventory Service (http://localhost:8001)
+### Food Service (http://localhost:8004)
 
-| Endpoint                                  | Method   | Description                               |
-| ----------------------------------------- | -------- | ----------------------------------------- |
-| `/`                                       | GET      | Health check                              |
-| `/inventory`                              | GET/POST | Inventory management                      |
-| `/inventory/with-validation`              | POST     | Create inventory with category validation |
-| `/inventory/categories/from-main-service` | GET      | Get categories from main service          |
-| `/integration/items`                      | GET      | Get items from main service               |
-| `/integration/categories`                 | GET      | Get categories from main service          |
-| `/integration/health/main-service`        | GET      | Check main service health                 |
+| Endpoint                            | Method | Description                | Auth Required |
+| ----------------------------------- | ------ | -------------------------- | ------------- |
+| `/`                                 | GET    | Health check               | No            |
+| `/categories/`                      | POST   | Create category            | Yes           |
+| `/categories/`                      | GET    | Get all categories         | Yes           |
+| `/categories/{id}`                  | GET    | Get category by ID         | Yes           |
+| `/restaurants/`                     | POST   | Create restaurant          | Yes           |
+| `/restaurants/`                     | GET    | Get all restaurants        | Yes           |
+| `/restaurants/{id}`                 | GET    | Get restaurant by ID       | Yes           |
+| `/foods/`                           | POST   | Create food item           | Yes           |
+| `/foods/`                           | GET    | Get all foods              | Yes           |
+| `/foods/{id}`                       | GET    | Get food by ID             | Yes           |
+| `/menu/`                            | POST   | Create menu item           | Yes           |
+| `/menu/`                            | GET    | Get all menus              | Yes           |
+| `/menu/{id}`                        | GET    | Get menu by ID             | Yes           |
+| `/menu/restaurants/{restaurant_id}` | GET    | Get menus by restaurant ID | Yes           |
+| `/orders/`                          | POST   | Create order               | Yes           |
+| `/orders/`                          | GET    | Get all orders             | Yes           |
+| `/orders/{id}`                      | GET    | Get order by ID            | Yes           |
+| `/docs`                             | GET    | Swagger UI documentation   | No            |
+
+### Product Service (http://localhost:8001)
+
+| Endpoint           | Method | Description            | Auth Required |
+| ------------------ | ------ | ---------------------- | ------------- |
+| `/`                | GET    | Health check           | No            |
+| `/items/`          | GET    | List items (paginated) | Yes           |
+| `/items/`          | POST   | Create item            | Yes           |
+| `/items/{id}`      | GET    | Get item by ID         | Yes           |
+| `/items/{id}`      | PUT    | Update item            | Yes           |
+| `/categories/`     | GET    | List categories        | Yes           |
+| `/categories/`     | POST   | Create category        | Yes           |
+| `/categories/{id}` | GET    | Get category by ID     | Yes           |
+
+### Booking Service (http://localhost:8003)
+
+| Endpoint     | Method | Description    | Auth Required |
+| ------------ | ------ | -------------- | ------------- |
+| `/`          | GET    | Health check   | No            |
+| `/theaters/` | GET    | List theaters  | Yes           |
+| `/movies/`   | GET    | List movies    | Yes           |
+| `/showings/` | GET    | List showings  | Yes           |
+| `/bookings/` | POST   | Create booking | Yes           |
+| `/bookings/` | GET    | List bookings  | Yes           |
+
+### Inventory Service (http://localhost:8002)
+
+| Endpoint      | Method | Description      | Auth Required |
+| ------------- | ------ | ---------------- | ------------- |
+| `/`           | GET    | Health check     | No            |
+| `/inventory/` | GET    | List inventory   | Yes           |
+| `/inventory/` | POST   | Create inventory | Yes           |
 
 ## 🧪 Testing
 
-### Automated Test Script
+### API Documentation
 
-```bash
-python3 test_microservices.py
-```
+All services provide auto-generated interactive documentation:
+
+- **Swagger UI**: `http://localhost:{port}/docs`
+- **ReDoc**: `http://localhost:{port}/redoc`
 
 ### Manual Testing with cURL
 
-**Test Health:**
+**1. Register a User:**
 
 ```bash
-curl http://localhost:8001/integration/health/main-service
-```
-
-**Get Categories:**
-
-```bash
-curl http://localhost:8001/integration/categories
-```
-
-**Create Inventory with Validation:**
-
-```bash
-curl -X POST http://localhost:8001/inventory/with-validation \
+curl -X POST http://localhost:8000/auth/ \
   -H "Content-Type: application/json" \
   -d '{
-    "product_name": "Laptop",
-    "category": "Electronics",
-    "quantity_in_stock": 50,
-    "unit_price": 999.99,
-    "last_restock_date": "2024-01-15T10:00:00",
-    "supplier": "Tech Supplier Inc",
-    "reorder_point": 10
+    "email": "user@example.com",
+    "name": "John Doe",
+    "password": "secure123"
   }'
 ```
 
-### Postman Collection
+**2. Login (sets cookie):**
 
-Import `Microservices.postman_collection.json` into Postman for easy API testing.
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -c cookies.txt \
+  -d '{
+    "email": "user@example.com",
+    "password": "secure123"
+  }'
+```
+
+**3. Create a Category (Food Service):**
+
+```bash
+curl -X POST http://localhost:8004/categories/ \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{
+    "name": "Italian",
+    "description": "Italian cuisine"
+  }'
+```
+
+**4. Create a Restaurant:**
+
+```bash
+curl -X POST http://localhost:8004/restaurants/ \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{
+    "name": "Pizza Palace",
+    "address": "123 Main St",
+    "phone": "555-1234"
+  }'
+```
+
+**5. Create a Menu:**
+
+```bash
+curl -X POST http://localhost:8004/menu/ \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{
+    "restaurant_id": "uuid-here",
+    "food_id": "uuid-here",
+    "category_id": "uuid-here",
+    "price": 15.99
+  }'
+```
+
+### Postman Collections
+
+- `Booking_Service.postman_collection.json` - Booking service endpoints
+- Import into Postman for easy API testing
 
 ## 💻 Code Examples
 
-### Calling Main Service from Inventory Service
+### Food Service - Menu Creation
 
 ```python
-from services.fastapi_client import FastAPILearningClient
-from fastapi import Depends
+from fastapi import APIRouter, Depends, HTTPException
+from schemas.menu import MenuCreate, MenuResponse
+from services.menu_service import MenuService
+from database import get_db
 
-@router.get("/example")
-async def example(client: FastAPILearningClient = Depends()):
-    # Get categories from main service
-    categories = await client.get_categories()
+router = APIRouter()
 
-    # Get items with authentication
-    items = await client.get_items(token="jwt_token_here")
-
-    return {"categories": categories, "items": items}
+@router.post("/menu/", response_model=MenuResponse)
+def create_menu(menu: MenuCreate, db: Session = Depends(get_db)):
+    menu_service = MenuService(db)
+    return menu_service.create_menu(menu)
 ```
 
-### Category Validation Example
+### Authentication Guard Usage
 
 ```python
-# Validate category before creating inventory
-category = await client.get_category_by_name(category_name)
-if category:
-    # Category exists in main service
-    # Proceed with inventory creation
+from core.utils import auth_guard
+from fastapi import Depends, Request
+
+@router.post("/orders/")
+def create_order(
+    order: OrderCreate,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    # User ID is available from request.state.user_id
+    user_id = request.state.user_id
+    # Create order with user association
     ...
+```
+
+### Repository Pattern Example
+
+```python
+from repository.menu_repo import MenuRepository
+from sqlalchemy.orm import Session
+
+class MenuService:
+    def __init__(self, db: Session):
+        self.menu_repository = MenuRepository(db)
+
+    def create_menu(self, menu: MenuCreate):
+        return self.menu_repository.create_menu(menu)
 ```
 
 ## 🛠️ Technology Stack
 
-- **Framework**: FastAPI
+### Backend
+
+- **Framework**: FastAPI 0.120.1
 - **Language**: Python 3.14
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Migrations**: Alembic
-- **HTTP Client**: httpx
+- **Database**: PostgreSQL 16 (Alpine)
+- **ORM**: SQLAlchemy 2.0.23
+- **Migrations**: Alembic 1.13.1
+- **HTTP Client**: httpx (for inter-service communication)
 - **Authentication**: JWT (python-jose)
-- **Validation**: Pydantic
+- **Password Hashing**: bcrypt + passlib
+- **Validation**: Pydantic 2.12.3
+- **Caching**: Redis 7 (for rate limiting)
+
+### Frontend
+
+- **Framework**: React with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+
+### Infrastructure
+
+- **Containerization**: Docker & Docker Compose
+- **Networking**: Custom bridge network for service communication
 
 ## 📈 Use Cases
 
-### 1. Data Validation Across Services
+### 1. Food Ordering System
 
-Validate inventory categories against the main service's categories.
+Complete food ordering platform with:
 
-### 2. Data Aggregation
+- Restaurant and menu management
+- Category-based food organization
+- Order creation and tracking
+- User authentication and authorization
 
-Combine inventory data with item details from the main service.
+### 2. Movie Theater Booking
 
-### 3. Service Health Monitoring
+Booking system for:
 
-Monitor the health of dependent services.
+- Theater and movie management
+- Showtime scheduling
+- Seat selection and booking
+- Booking history tracking
+
+### 3. E-commerce Platform
+
+Product catalog and inventory management:
+
+- Product and category management
+- Inventory tracking
+- Rate limiting and caching
+- Cross-service validation
 
 ### 4. Centralized Authentication
 
-Use authentication from the main service across all microservices.
+JWT-based authentication service used across all microservices:
+
+- User registration and login
+- Token generation and validation
+- Role-based access control
+- Secure password hashing
 
 ## 🔒 Security Considerations
 
@@ -270,76 +473,111 @@ Use authentication from the main service across all microservices.
 
 ### Development
 
-Run both services locally on different ports.
+**Using Docker Compose (Recommended):**
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Stop services
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+```
+
+**Local Development:**
+
+Each service can be run independently:
+
+```bash
+cd [service-name]
+source venv/bin/activate
+uvicorn main:app --reload --port [port]
+```
 
 ### Production Options
 
-**Option 1: Traditional Deployment**
+**Option 1: Docker Compose**
 
-- Deploy each service to separate servers
-- Use nginx as reverse proxy
-- Configure service discovery
+- Multi-container orchestration
+- Service health checks
+- Persistent volumes for databases
+- Network isolation
 
-**Option 2: Docker**
+**Option 2: Kubernetes**
 
-```bash
-# Build and run with docker-compose
-docker-compose up -d
-```
+- Container orchestration
+- Auto-scaling
+- Service mesh integration
+- Load balancing
 
-**Option 3: Kubernetes**
+**Option 3: Cloud Platforms**
 
-```bash
-# Deploy to Kubernetes cluster
-kubectl apply -f k8s/
-```
+- AWS ECS/Fargate
+- Google Cloud Run
+- Azure Container Instances
+- DigitalOcean App Platform
 
 ## 📊 Monitoring & Observability
 
 ### Current Setup
 
-- ✅ Logging with Python logging module
-- ✅ Health check endpoints
+- ✅ Structured logging with Python logging module
+- ✅ Log files per service (`app.log`)
+- ✅ Health check endpoints (`/`)
+- ✅ Auto-generated API documentation (Swagger/ReDoc)
+- ✅ Redis health checks (product-service)
 
 ### Future Enhancements
+
+- 🔲 Prometheus metrics collection
+- 🔲 Grafana dashboards for visualization
+- 🔲 Distributed tracing (Jaeger/Zipkin)
+- 🔲 ELK stack for centralized log aggregation
+- 🔲 APM tools (New Relic, DataDog)
+- 🔲 Error tracking (Sentry)
+
+## 🎯 Roadmap
+
+### Phase 1: Core Services (✅ Complete)
+
+- ✅ Auth service with JWT authentication
+- ✅ Food service with full CRUD operations
+- ✅ Menu management functionality
+- ✅ Order management system
+- ✅ Docker containerization
+- ✅ Inter-service communication
+- ✅ Repository and service layer patterns
+
+### Phase 2: Enhanced Features (🔲 TODO)
+
+- 🔲 Circuit breaker pattern for resilience
+- 🔲 Message queue (RabbitMQ/Kafka) for async communication
+- 🔲 Event-driven architecture
+- 🔲 API Gateway (Kong/Traefik)
+- 🔲 Service mesh (Istio) for advanced networking
+
+### Phase 3: Observability (🔲 TODO)
 
 - 🔲 Prometheus metrics
 - 🔲 Grafana dashboards
 - 🔲 Distributed tracing (Jaeger)
-- 🔲 ELK stack for log aggregation
-- 🔲 APM (Application Performance Monitoring)
+- 🔲 Centralized logging (ELK stack)
+- 🔲 Error tracking (Sentry)
 
-## 🎯 Roadmap
+### Phase 4: Production Readiness (🔲 TODO)
 
-### Phase 1: Basic Communication (✅ Complete)
-
-- ✅ HTTP client implementation
-- ✅ Service-to-service calls
-- ✅ Error handling
-- ✅ Documentation
-
-### Phase 2: Advanced Features (🔲 TODO)
-
-- 🔲 Circuit breaker pattern
-- 🔲 Service mesh (Istio)
-- 🔲 Message queue (RabbitMQ/Kafka)
-- 🔲 Event-driven architecture
-- 🔲 API Gateway (Kong/Traefik)
-
-### Phase 3: DevOps (🔲 TODO)
-
-- 🔲 Docker containerization
 - 🔲 Kubernetes orchestration
-- 🔲 CI/CD pipeline
+- 🔲 CI/CD pipeline (GitHub Actions/GitLab CI)
 - 🔲 Infrastructure as Code (Terraform)
-
-### Phase 4: Production Ready (🔲 TODO)
-
-- 🔲 Comprehensive monitoring
-- 🔲 Distributed tracing
-- 🔲 Auto-scaling
-- 🔲 Disaster recovery
+- 🔲 Auto-scaling configuration
+- 🔲 Disaster recovery plan
 - 🔲 Multi-region deployment
+- 🔲 Performance testing and optimization
 
 ## 🤝 Contributing
 
@@ -359,9 +597,29 @@ For questions or issues, please open an issue on GitHub.
 
 ---
 
+## 📝 Recent Updates
+
+### Food Service - Menu Management (Latest)
+
+- ✅ Added menu endpoints for linking foods to restaurants
+- ✅ Menu creation with restaurant, food, and category relationships
+- ✅ Get menus by restaurant ID
+- ✅ Full CRUD operations for menu items
+- ✅ Repository pattern implementation
+- ✅ Service layer for business logic
+
+### Architecture Improvements
+
+- ✅ Docker Compose configuration for multi-service deployment
+- ✅ Redis integration for caching and rate limiting
+- ✅ Improved error handling across services
+- ✅ Structured logging implementation
+
+---
+
 **Happy Microservicing! 🎉**
 
 For detailed information, refer to:
 
-- [QUICKSTART.md](QUICKSTART.md) - Quick start guide
-- [MICROSERVICES_GUIDE.md](MICROSERVICES_GUIDE.md) - Comprehensive guide
+- [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Comprehensive project reference
+- [DOCKER_SETUP.md](DOCKER_SETUP.md) - Docker deployment guide
