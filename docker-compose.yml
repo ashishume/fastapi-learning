@@ -204,8 +204,11 @@ services:
       POSTGRES_PORT: 5432
       AUTH_SERVICE_URL: http://auth-service:8000
       TOKEN_SECRET: dev-secret-key-change-in-production
+      REDIS_URL: redis://redis:6379
     depends_on:
       food-db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - ./food-service:/app

@@ -17,6 +17,8 @@ alembic==1.13.1
 python-dotenv==1.0.0
 
 
+# Caching
+redis==5.1.1
 annotated-doc==0.0.3
 annotated-types==0.7.0
 anyio==4.11.0

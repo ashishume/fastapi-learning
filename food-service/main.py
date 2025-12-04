@@ -16,6 +16,8 @@ from api.v1.routes import orders
 from api.v1.routes import menu
 from api.v1.routes import web_server
 
+from core.redis_client import connect_redis, close_redis
+
 # Import sharding module (optional - enable with ENABLE_SHARDING=true)
 ENABLE_SHARDING = os.getenv("ENABLE_SHARDING", "false").lower() == "true"
 
@@ -44,6 +46,8 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("Starting up application...")
+
+    await connect_redis()
     
     if ENABLE_SHARDING:
         # Sharded database setup
@@ -80,6 +84,8 @@ async def lifespan(app: FastAPI):
         engine.dispose()
     
     logger.info("Application shutdown complete")
+
+    await close_redis()
 
 
 # Create FastAPI application
