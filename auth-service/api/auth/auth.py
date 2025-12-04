@@ -36,6 +36,8 @@ def signup(req_payload: RequestPayload, db: Session = Depends(get_db)) -> Respon
         db.refresh(db_item)
         return ResponseModel(id=db_item.id, email=db_item.email, name=db_item.name)
     except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to create user: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed {e}"
         )
