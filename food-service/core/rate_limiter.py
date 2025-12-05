@@ -19,42 +19,49 @@ class RateLimiter:
             logger.warning(f"Rate limiter: Redis not available, allowing request for key: {key}")
             return True
             
+        try:
+            current_time = int(time.time())   
+            window_start = current_time - self.window 
 
-        current_time = int(time.time())   
-        window_start = current_time - self.window 
+            # Remove old entries outside the time window
+            await self.redis.zremrangebyscore(key, 0, window_start)
 
-        # Remove old entries outside the time window
-        await self.redis.zremrangebyscore(key, 0, window_start)
+            # Get current request count
+            request_count = await self.redis.zcard(key)
 
-        # Get current request count
-        request_count = await self.redis.zcard(key)
+            if request_count >= self.max_requests:
+                return False
 
-        if request_count >= self.max_requests:
-            return False
+            # Add current request with unique identifier (timestamp + UUID to avoid collisions)
+            unique_request_id = f"{current_time}:{uuid.uuid4().hex[:8]}"
+            await self.redis.zadd(key, {unique_request_id: current_time})
+            await self.redis.expire(key, self.window)
 
-        # Add current request timestamp
-
-        unique_request_id = f"{current_time}:{uuid.uuid4().hex[:8]}"
-        await self.redis.zadd(key, {unique_request_id: current_time})
-        await self.redis.expire(key, self.window)
-
-        return True
+            return True
+        except Exception as e:
+            # If Redis operation fails, log error and allow request (graceful degradation)
+            logger.error(f"Rate limiter error for key {key}: {e}. Allowing request as fallback.")
+            return True
 
     async def get_remaining_requests(self, key: str) -> int:
         """Get the number of remaining requests in the current window."""
         if self.redis is None:
             return self.max_requests
+        
+        try:
+            current_time = int(time.time())
+            window_start = current_time - self.window
             
-        current_time = int(time.time())
-        window_start = current_time - self.window
-        
-        # Remove old entries
-        await self.redis.zremrangebyscore(key, 0, window_start)
-        
-        # Get current request count
-        request_count = await self.redis.zcard(key)
-        
-        return max(0, self.max_requests - request_count)
+            # Remove old entries
+            await self.redis.zremrangebyscore(key, 0, window_start)
+            
+            # Get current request count
+            request_count = await self.redis.zcard(key)
+            
+            return max(0, self.max_requests - request_count)
+        except Exception as e:
+            logger.error(f"Error getting remaining requests for key {key}: {e}")
+            return self.max_requests
 
 
 

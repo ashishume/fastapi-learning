@@ -14,7 +14,11 @@ router = APIRouter()
 
 def get_rate_limiter() -> RateLimiter:
     """Get rate limiter instance with Redis client."""
-    redis_client = get_redis_client()
+    try:
+        redis_client = get_redis_client()
+    except RuntimeError:
+        # Redis not available, rate limiter will allow all requests (graceful degradation)
+        redis_client = None
     return RateLimiter(redis_client, max_requests=5, window_seconds=30)
 
 @router.post("/",status_code=status.HTTP_201_CREATED,summary="Create a new food",response_model=FoodResponse)
@@ -43,7 +47,7 @@ async def get_all_foods(
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail=f"Rate limit exceeded. Too many requests. Remaining requests: {remaining}",
-                headers={"Retry-After": "60", "X-RateLimit-Remaining": str(remaining)}
+                headers={"Retry-After": str(rate_limiter.window), "X-RateLimit-Remaining": str(remaining)}
             ) 
 
         food_service = FoodsService(db)
