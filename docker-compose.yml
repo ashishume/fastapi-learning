@@ -142,92 +142,45 @@ services:
   #     - microservices-network
   #   restart: unless-stopped
 
-  # Booking Service Database
-  # booking-db:
-  #   image: postgres:16-alpine
-  #   container_name: booking-db
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: admin
-  #     POSTGRES_DB: booking_service
-  #   ports:
-  #     - "5436:5432"
-  #   volumes:
-  #     - booking-db-data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   networks:
-  #     - microservices-network
-
-  # Booking Service
-  # booking-service:
-  #   build:
-  #     context: ./booking-service
-  #     dockerfile: Dockerfile
-  #   container_name: booking-service
-  #   ports:
-  #     - "8003:8003"
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: admin
-  #     POSTGRES_DB: booking_service
-  #     POSTGRES_HOST: booking-db
-  #     POSTGRES_PORT: 5432
-  #     PRODUCT_SERVICE_URL: http://product-service:8001
-  #     AUTH_SERVICE_URL: http://auth-service:8000
-  #     TOKEN_SECRET: dev-secret-key-change-in-production
-  #   depends_on:
-  #     booking-db:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./booking-service:/app
-  #   networks:
-  #     - microservices-network
-  #   restart: unless-stopped
-
-  # Food Service
-  food-service:
-    build:
-      context: ./food-service
-      dockerfile: Dockerfile
-    container_name: food-service
-    ports:
-      - "8004:8004"
+  # Elasticsearch Service
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: food_service
-      POSTGRES_HOST: food-db
-      POSTGRES_PORT: 5432
-      AUTH_SERVICE_URL: http://auth-service:8000
-      TOKEN_SECRET: dev-secret-key-change-in-production
-      REDIS_URL: redis://redis:6379
-    depends_on:
-      food-db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
     volumes:
-      - ./food-service:/app
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl --silent --fail localhost:9200/_cluster/health?wait_for_status=yellow&timeout=50s || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     networks:
       - microservices-network
     restart: unless-stopped
 
-  # Food Service Database
-  food-db:
+  # Booking Service Database
+  booking-db:
     image: postgres:16-alpine
-    container_name: food-db
+    container_name: booking-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: food_service
+      POSTGRES_DB: booking_service
     ports:
-      - "5437:5432"
+      - "5436:5432"
     volumes:
-      - food-db-data:/var/lib/postgresql/data
+      - booking-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -235,6 +188,85 @@ services:
       retries: 5
     networks:
       - microservices-network
+
+  # Booking Service
+  booking-service:
+    build:
+      context: ./booking-service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    ports:
+      - "8003:8003"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: booking_service
+      POSTGRES_HOST: booking-db
+      POSTGRES_PORT: 5432
+      PRODUCT_SERVICE_URL: http://product-service:8001
+      AUTH_SERVICE_URL: http://auth-service:8000
+      TOKEN_SECRET: dev-secret-key-change-in-production
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./booking-service:/app
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Food Service
+  # food-service:
+  #   build:
+  #     context: ./food-service
+  #     dockerfile: Dockerfile
+  #   container_name: food-service
+  #   ports:
+  #     - "8004:8004"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: food_service
+  #     POSTGRES_HOST: food-db
+  #     POSTGRES_PORT: 5432
+  #     AUTH_SERVICE_URL: http://auth-service:8000
+  #     TOKEN_SECRET: dev-secret-key-change-in-production
+  #     REDIS_URL: redis://redis:6379
+  #   depends_on:
+  #     food-db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./food-service:/app
+  #   networks:
+  #     - microservices-network
+  #   restart: unless-stopped
+
+  # # Food Service Database
+  # food-db:
+  #   image: postgres:16-alpine
+  #   container_name: food-db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: food_service
+  #   ports:
+  #     - "5437:5432"
+  #   volumes:
+  #     - food-db-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - microservices-network
   # Client (React Frontend)
   client:
     build:
@@ -278,6 +310,7 @@ volumes:
   auth-db-data:
   # product-db-data:
   # inventory-db-data:
-  # booking-db-data:
+  booking-db-data:
   redis-data:
-  food-db-data:
+  # food-db-data:
+  elasticsearch-data:

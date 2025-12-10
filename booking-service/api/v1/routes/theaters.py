@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas.theater import TheaterCreate, TheaterResponse
 from models.theaters import Theater
+from services.search_service import SearchService
 router=APIRouter()
 
 
@@ -22,6 +23,13 @@ def create_theater(theater: TheaterCreate, db: Session = Depends(get_db)) -> The
             db.add(new_theater)
             db.commit()
             db.refresh(new_theater)
+
+
+
+            # Sync to Elasticsearch
+            search_service = SearchService(db)
+            search_service.sync_theatre_with_elastic_search(new_theater)
+
             return TheaterResponse.model_validate(new_theater)
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error creating theater: {e}")

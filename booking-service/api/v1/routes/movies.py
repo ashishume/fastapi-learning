@@ -6,6 +6,7 @@ from schemas.movie import MovieCreate, MovieResponse
 from models.movies import Movie
 from database import get_db
 from fastapi import Depends, HTTPException, status
+from services.search_service import SearchService
 import datetime
 
 router=APIRouter()
@@ -30,8 +31,14 @@ def create_movie(movie: MovieCreate, db: Session = Depends(get_db)) -> MovieResp
         db.add(new_movie)
         db.commit()
         db.refresh(new_movie)
+        
+        # Sync to Elasticsearch
+        search_service = SearchService(db)
+        search_service.sync_movie_to_elasticsearch(new_movie)
+        
         return MovieResponse.model_validate(new_movie)
     except Exception as e:
+     
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error creating movie: {e}")
 
 
@@ -65,6 +72,11 @@ def update_movie_by_id(movie_id: str, movie_update: dict[str, Any], db: Session 
         movie.updated_at = datetime.datetime.utcnow()
         db.commit()
         db.refresh(movie)
+        
+        # Sync to Elasticsearch
+        search_service = SearchService(db)
+        search_service.sync_movie_to_elasticsearch(movie)
+        
         return MovieResponse.model_validate(movie)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Error updating movie: {e}")

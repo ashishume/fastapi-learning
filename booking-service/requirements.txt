@@ -12,6 +12,9 @@ sqlalchemy==2.0.44
 psycopg2-binary==2.9.11
 alembic==1.13.1
 
+# Elasticsearch
+elasticsearch==8.11.0
+
 
 # Environment variables
 python-dotenv==1.0.0

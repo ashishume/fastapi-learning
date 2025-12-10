@@ -8,8 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 import models
-from api.v1.routes import theaters, movies, showings, seats, booking, booking_seats
+from api.v1.routes import theaters, movies, showings, seats, booking, booking_seats, search
 from core.utils import auth_guard
+from core.elasticsearch_client import get_elasticsearch_client, close_elasticsearch_client, create_index_if_not_exists
+from core.elasticsearch_indices import ELASTICSEARCH_INDICES, get_all_index_names
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -32,6 +34,24 @@ async def lifespan(app: FastAPI):
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
+    
+    # Initialize Elasticsearch client
+    logger.info("Initializing Elasticsearch client...")
+    try:
+        get_elasticsearch_client()
+        logger.info("Elasticsearch client initialized successfully")
+        
+        # Create all Elasticsearch indices
+        logger.info("Setting up Elasticsearch indices...")
+        for index_name in get_all_index_names():
+            index_config = ELASTICSEARCH_INDICES[index_name]
+            create_index_if_not_exists(
+                index_name=index_name,
+                mapping=index_config["mappings"]
+            )
+        logger.info("Elasticsearch indices setup complete")
+    except Exception as e:
+        logger.warning(f"Failed to initialize Elasticsearch client: {str(e)}")
 
     yield
 
@@ -39,6 +59,8 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down application...")
     logger.info("Closing database connections...")
     engine.dispose()
+    logger.info("Closing Elasticsearch client...")
+    close_elasticsearch_client()
     logger.info("Application shutdown complete")
 
 
@@ -74,6 +96,7 @@ routes = [
     (seats.router, "/seats", ["seats"], [Depends(auth_guard)]),
     (booking.router, "/bookings", ["bookings"], [Depends(auth_guard)]),
     (booking_seats.router, "/booking_seats", ["booking_seats"], [Depends(auth_guard)]),
+    (search.router, "/search", ["search"], [Depends(auth_guard)]),
 ]
 
 for router, prefix, tags, dependencies in routes:
