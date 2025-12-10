@@ -9,6 +9,7 @@ from sqlalchemy import (
     Enum as SQLEnum,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -50,3 +51,14 @@ class Booking(Base):
     # theater = relationship("Theater", back_populates="bookings")
     showing = relationship("Showing", back_populates="bookings")
     booking_seats = relationship("BookingSeat", back_populates="booking", cascade="all, delete-orphan")
+
+    # Production-ready indexes
+    __table_args__ = (
+        Index("ix_bookings_user_id", "user_id"),  # Frequently queried by user
+        Index("ix_bookings_showing_id", "showing_id"),  # Foreign key for joins
+        Index("ix_bookings_status", "status"),  # Filtered by booking status
+        Index("ix_bookings_booking_number", "booking_number"),  # Unique lookups by booking number
+        Index("ix_bookings_created_at", "created_at"),  # Sorting and date range queries
+        Index("ix_bookings_user_status", "user_id", "status"),  # Composite: filter user bookings by status
+        Index("ix_bookings_showing_status", "showing_id", "status"),  # Composite: filter showings by status
+    )

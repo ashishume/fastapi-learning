@@ -1,6 +1,6 @@
 from datetime import date
 import datetime
-from sqlalchemy import UUID, Column, Date, DateTime, Text
+from sqlalchemy import UUID, Column, Date, DateTime, Index, Text
 from sqlalchemy.orm import relationship
 from database import Base
 import uuid
@@ -23,3 +23,10 @@ class Theater(Base):
     seats = relationship("Seat", back_populates="theater",cascade="all, delete-orphan")
     showings = relationship("Showing", back_populates="theater",cascade="all, delete-orphan")
     # bookings = relationship("Booking", back_populates="theater",cascade="all, delete-orphan")
+
+    # Production-ready indexes
+    __table_args__ = (
+        Index("ix_theaters_city", "city"),  # Filtered by city
+        Index("ix_theaters_location", "location"),  # Filtered by location
+        Index("ix_theaters_city_location", "city", "location"),  # Composite: city and location queries
+    )

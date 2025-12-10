@@ -8,6 +8,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     Float,
+    Index,
     Integer,
     String,
     Text,
@@ -43,3 +44,12 @@ class Movie(Base):
         "Showing", back_populates="movie", cascade="all, delete-orphan"
     )
     # bookings = relationship("Booking", back_populates="movie",cascade="all, delete-orphan")
+
+    # Production-ready indexes
+    __table_args__ = (
+        Index("ix_movies_title", "title"),  # Search and filtering by title
+        Index("ix_movies_genre", "genre"),  # Filtered by genre
+        Index("ix_movies_release_date", "release_date"),  # Sorting and filtering by release date
+        Index("ix_movies_rating", "rating"),  # Sorting and filtering by rating
+        Index("ix_movies_language", "language"),  # Filtered by language
+    )

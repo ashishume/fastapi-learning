@@ -1,7 +1,7 @@
 from datetime import date
 import datetime
 from enum import Enum
-from sqlalchemy import UUID, Column, Date, DateTime, Enum as SQLEnum, ForeignKey, Integer, String, Text
+from sqlalchemy import UUID, Column, Date, DateTime, Enum as SQLEnum, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from database import Base
 import uuid
 from sqlalchemy.orm import relationship
@@ -36,6 +36,14 @@ class Seat(Base):
     # showing = relationship("Showing", back_populates="seats", primaryjoin="Seat.showing_id == Showing.id")
     theater = relationship("Theater", back_populates="seats")
     
+
+    # Production-ready indexes and constraints
+    __table_args__ = (
+        Index("ix_seats_theater_id", "theater_id"),  # Foreign key, frequently queried
+        Index("ix_seats_seat_type", "seat_type"),  # Filtered by seat type
+        Index("ix_seats_theater_row_column", "theater_id", "row", "column"),  # Composite: seat lookups
+        UniqueConstraint("theater_id", "row", "column", name="uq_seats_theater_row_column"),  # Prevent duplicate seats
+    )
 
     # TODO: Remove this once the schema is updated to use the movie and theater relationships
     # @property

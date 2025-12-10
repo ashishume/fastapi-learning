@@ -1,6 +1,6 @@
 from datetime import date
 import datetime
-from sqlalchemy import UUID, Boolean, Column, Date, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import UUID, Boolean, Column, Date, DateTime, ForeignKey, Index, Integer, Text
 from database import Base
 import uuid
 from sqlalchemy.orm import relationship
@@ -28,3 +28,14 @@ class Showing(Base):
     bookings = relationship("Booking", back_populates="showing",cascade="all, delete-orphan")
     booking_seats = relationship("BookingSeat", back_populates="showing",cascade="all, delete-orphan")
     # seats = relationship("Seat", back_populates="showing", primaryjoin="Showing.id == Seat.showing_id", cascade="all, delete-orphan")
+
+    # Production-ready indexes
+    __table_args__ = (
+        Index("ix_showings_movie_id", "movie_id"),  # Foreign key, frequently queried
+        Index("ix_showings_theater_id", "theater_id"),  # Foreign key, frequently queried
+        Index("ix_showings_expires_at", "expires_at"),  # Critical: WHERE expires_at > now()
+        Index("ix_showings_is_active", "is_active"),  # Filtered by active status
+        Index("ix_showings_theater_movie", "theater_id", "movie_id"),  # Composite: frequently queried together
+        Index("ix_showings_movie_theater_datetime", "movie_id", "theater_id", "show_start_datetime"),  # Composite: duplicate checking
+        Index("ix_showings_expires_active", "expires_at", "is_active"),  # Composite: active showings queries
+    )
