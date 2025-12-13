@@ -7,6 +7,9 @@ pydantic==2.12.3
 pydantic_core==2.41.4
 
 httpx==0.28.1
+requests==2.31.0
+beautifulsoup4==4.12.3
+playwright==1.40.0
 # Database
 sqlalchemy==2.0.44
 psycopg2-binary==2.9.11
