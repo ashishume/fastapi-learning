@@ -12,7 +12,7 @@ from api.v1.routes import theaters, movies, showings, seats, booking, booking_se
 from core.utils import auth_guard
 from core.elasticsearch_client import get_elasticsearch_client, close_elasticsearch_client, create_index_if_not_exists
 from core.elasticsearch_indices import ELASTICSEARCH_INDICES, get_all_index_names
-from api.v1.routes import scrap
+from api.v1.routes import upcoming_ipo_scrap
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -98,7 +98,7 @@ routes = [
     (booking.router, "/bookings", ["bookings"], [Depends(auth_guard)]),
     (booking_seats.router, "/booking_seats", ["booking_seats"], [Depends(auth_guard)]),
     (search.router, "/search", ["search"], [Depends(auth_guard)]),
-    (scrap.router, "/scrap", ["scrap"], []),
+    (upcoming_ipo_scrap.router, "/scrap", ["scrap"], []),
 ]
 
 for router, prefix, tags, dependencies in routes:

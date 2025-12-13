@@ -4,8 +4,6 @@ from playwright.async_api import async_playwright
 import asyncio
 import re
 
-BASE_URL = "https://www.moneycontrol.com"
-IPO_URL = "https://www.moneycontrol.com/ipo/"
 UPCOMING_IPO_URL = "https://www.moneycontrol.com/ipo/upcoming-ipos/"
 
 
@@ -40,34 +38,6 @@ def parse_table(section):
         })
 
     return ipo_list
-
-
-def get_active_ipos():
-    html = fetch_html(IPO_URL)
-    soup = BeautifulSoup(html, "html.parser")
-
-    active_section = soup.find("div", id="mc_active")
-    if not active_section:
-        return []
-
-    table = active_section.find("table")
-    if not table:
-        return []
-    return parse_table(table)
-
-
-def get_closed_ipos():
-    html = fetch_html(UPCOMING_IPO_URL)
-    soup = BeautifulSoup(html, "html.parser")
-
-    closed_section = soup.find("div", id="mc_recent")
-    if not closed_section:
-        return []
-
-    table = closed_section.find("table")
-    if not table:
-        return []
-    return parse_table(table)
 
 
 def _clean_html_for_llm(html: str) -> str:
@@ -115,7 +85,7 @@ async def get_all_upcoming_ipos_with_pagination(
                 viewport={"width": 1920, "height": 1080},
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 locale="en-US",
-                timezone_id="America/New_York",
+                timezone_id="Asia/Kolkata",  # India timezone for Moneycontrol website
                 permissions=["geolocation"],
                 extra_http_headers={
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
@@ -295,13 +265,3 @@ async def get_all_upcoming_ipos_with_pagination(
         return []
 
 
-if __name__ == "__main__":
-    print("Fetching Active IPOs...")
-    active = get_active_ipos()
-    for a in active:
-        print(a)
-
-    print("\nFetching Closed IPOs...")
-    closed = get_closed_ipos()
-    for c in closed:
-        print(c)

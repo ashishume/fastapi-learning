@@ -22,6 +22,9 @@ elasticsearch==8.11.0
 # Environment variables
 python-dotenv==1.0.0
 
+# Google Gemini LLM
+google-generativeai==0.3.2
+
 
 annotated-doc==0.0.3
 annotated-types==0.7.0
