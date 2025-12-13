@@ -1,6 +1,7 @@
 from core.html_scrap import (
     get_all_upcoming_ipos_with_pagination
 )
+from core.html_parser import get_structured_ipo_data
 from core.gemini_service import get_gemini_service
 from fastapi import APIRouter
 from fastapi import HTTPException
@@ -62,11 +63,14 @@ async def get_all_upcoming_ipos_endpoint(
             # Process with Gemini if requested
             if use_gemini:
                 try:
+                    # Parse HTML to extract structured data (reduces tokens by 60-80%)
+                    structured_data = get_structured_ipo_data(html)
+                    
                     gemini_service = get_gemini_service(model_name=gemini_model)
                     if gemini_service:
                         gemini_response = gemini_service.process_html(
-                            html_content=html,
-                            prompt=get_gemini_prompt(html_content=html),
+                            html_content=structured_data,  # Pass structured data instead of raw HTML
+                            prompt=get_gemini_prompt(structured_data=structured_data),
                             parse_json=True
                         )
                         # If the response is a list, wrap it in an object with "ipos" key

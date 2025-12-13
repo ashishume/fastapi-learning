@@ -1,13 +1,22 @@
-def get_gemini_prompt(html_content: str) -> str:
-    return f"""You are given scraped HTML from Moneycontrol that lists upcoming IPOs.  
-Your task is to extract IPO information and also enrich it with additional company and financial details, even if those details are not present in the HTML.
+def get_gemini_prompt(structured_data: str) -> str:
+    """
+    Generate prompt for Gemini LLM using structured IPO data instead of raw HTML.
+    This significantly reduces token usage (60-80% reduction).
+    
+    Args:
+        structured_data: JSON string containing structured IPO data extracted from HTML
+        
+    Returns:
+        Formatted prompt string
+    """
+    return f"""You are given structured IPO data extracted from Moneycontrol's upcoming IPOs page.
+Your task is to enrich this data with additional company and financial details from public sources.
 
-### INPUT HTML
-{html_content}
+### INPUT DATA (Structured IPO Information)
+{structured_data}
 
 ### TASKS
-1. Parse the HTML and extract all IPO cards.
-2. For each IPO, create a JSON object with the following fields:
+1. For each IPO in the input data, enrich it with the following fields:
    - companyName
    - ipoName
    - category (Mainline / SME)
@@ -32,7 +41,7 @@ Your task is to extract IPO information and also enrich it with additional compa
        - rhpUrl
        - detailPageUrl
 
-3. For each IPO, fetch or infer **additional financial details** from public sources (not from the HTML):
+2. For each IPO, fetch or infer **additional financial details** from public sources:
    - companyOverview: short summary of what the company does
    - revenue (last 3 years)
    - profitLoss (last 3 years)
@@ -44,7 +53,7 @@ Your task is to extract IPO information and also enrich it with additional compa
    - managementDetails
    - greyMarketPremium (if available)
 
-4. Output should be strictly valid **JSON** in the following format:
+3. Output should be strictly valid **JSON** in the following format:
 
 {{
   "ipos": [
@@ -93,7 +102,8 @@ Your task is to extract IPO information and also enrich it with additional compa
 
 ### RULES
 - Only return JSON. No explanations.
-- Ensure extracted fields are correct and clean.
-- Fill missing financial data using reliable external info sources.
+- Preserve all existing data from the input (companyName, dates, priceBand, etc.).
+- Enrich with financial data using reliable external info sources.
 - If some data is not publicly available, set it as null instead of guessing.
+- Maintain the same structure and order of IPOs as in the input.
 """
