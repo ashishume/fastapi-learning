@@ -114,12 +114,12 @@ app.add_middleware(
 
 # Include routers
 routes = [
-    (categories.router, "/categories", ["categories"], [Depends(auth_guard)]),
-    (restaurants.router, "/restaurants", ["restaurants"], [Depends(auth_guard)]),
-    (foods.router, "/foods", ["foods"], [Depends(auth_guard)]),
-    (orders.router, "/orders", ["orders"], [Depends(auth_guard)]),
-    (menu.router, "/menu", ["menu"], [Depends(auth_guard)]),
-    (web_server.router, "/ws", ["ws"], []),
+    (categories.router, "/food/categories", ["categories"], [Depends(auth_guard)]),
+    (restaurants.router, "/food/restaurants", ["restaurants"], [Depends(auth_guard)]),
+    (foods.router, "/food/foods", ["foods"], [Depends(auth_guard)]),
+    (orders.router, "/food/orders", ["orders"], [Depends(auth_guard)]),
+    (menu.router, "/food/menu", ["menu"], [Depends(auth_guard)]),
+    (web_server.router, "/food/ws", ["ws"], []),
 ]
 
 for router, prefix, tags, dependencies in routes:

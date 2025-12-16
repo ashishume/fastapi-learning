@@ -72,14 +72,14 @@ app.add_middleware(
 # Include routers
 app.include_router(
     inventory.router,
-    prefix="/inventory",
+    prefix="/inventory/inventory",
     tags=["inventory"],
     # auth guard for all routes inside the items router
     dependencies=[Depends(auth_guard)],
 )
 app.include_router(
     orders.router,
-    prefix="/orders",
+    prefix="/inventory/orders",
     tags=["orders"],
     # auth guard for all routes inside the orders router
     dependencies=[Depends(auth_guard)],

@@ -2,40 +2,48 @@
 
 ## 📋 Project Overview
 
-This is a **microservices-based application** built with FastAPI, demonstrating modern backend architecture with three independent services that communicate via HTTP/REST APIs. The project showcases authentication, product management, and inventory management in a distributed system.
+This is a **comprehensive microservices-based application** built with FastAPI, demonstrating modern backend architecture with multiple independent services that communicate via HTTP/REST APIs, WebSockets, and message queues. The project showcases authentication, product management, inventory management, booking systems, food ordering, and a React frontend in a distributed system.
 
 ### System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Client / Browser                              │
-└────────┬───────────────┬─────────────────┬─────────────────────┘
-         │               │                 │
-         ▼               ▼                 ▼
-   ┌──────────┐   ┌──────────┐    ┌──────────────┐
-   │   Auth   │   │ Product  │◄───│  Inventory   │
-   │ Service  │   │ Service  │    │   Service    │
-   │ Port:8000│   │Port: 8001│    │  Port: 8002  │
-   └─────┬────┘   └─────┬────┘    └──────┬───────┘
-         │              │                 │
-         ▼              ▼                 ▼
-   ┌──────────┐   ┌──────────┐    ┌──────────────┐
-   │ auth_db  │   │product_db│    │ inventory_db │
-   │Port: 5435│   │Port: 5433│    │  Port: 5434  │
-   └──────────┘   └──────────┘    └──────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    React Client (TypeScript + Tailwind CSS)                 │
+│                         Port: 5173                                           │
+└────────┬───────────────┬──────────────┬──────────────┬─────────────────────┘
+         │               │              │               │
+         ▼               ▼              ▼               ▼
+   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+   │   Auth   │   │ Product  │   │ Booking  │   │   Food   │
+   │ Service  │   │ Service  │   │ Service  │   │ Service  │
+   │ Port:8000│   │Port: 8001│   │Port: 8003│   │Port: 8004│
+   └─────┬────┘   └─────┬────┘   └─────┬────┘   └─────┬────┘
+         │              │              │               │
+         ▼              ▼              ▼               ▼
+   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+   │ auth_db  │   │product_db │   │booking_db│   │ food_db  │
+   │Port:5435 │   │Port: 5433│   │Port:5436 │   │Port:5437 │
+   └──────────┘   └──────────┘   └─────┬────┘   └─────┬────┘
+                                        │               │
+                                        ▼               ▼
+                                ┌──────────────┐  ┌──────────┐
+                                │ Elasticsearch│  │  Redis   │
+                                │  Port: 9200  │  │Port:6379 │
+                                └──────────────┘  └──────────┘
 ```
 
 ---
 
 ## 🏗️ Services Architecture
 
-### 1. Auth Service (Port 8000)
+### 1. Auth Service (Port 8000) ✅ Active
 
 **Purpose**: Central authentication and user management service
 
 **Database**: `auth_service` on PostgreSQL (Port 5435)
 
 **Key Responsibilities**:
+
 - User registration and authentication
 - JWT token generation and validation
 - Password hashing with bcrypt (with SHA-256 pre-hashing)
@@ -54,14 +62,15 @@ Table: users
 
 **API Endpoints**:
 
-| Method | Endpoint        | Description              | Auth Required |
-|--------|-----------------|--------------------------|---------------|
-| GET    | `/`             | Health check             | No            |
-| POST   | `/auth/`        | User registration/signup | No            |
-| POST   | `/auth/login`   | User login (sets cookie) | No            |
-| POST   | `/auth/logout`  | User logout              | No            |
+| Method | Endpoint       | Description              | Auth Required |
+| ------ | -------------- | ------------------------ | ------------- |
+| GET    | `/`            | Health check             | No            |
+| POST   | `/auth/`       | User registration/signup | No            |
+| POST   | `/auth/login`  | User login (sets cookie) | No            |
+| POST   | `/auth/logout` | User logout              | No            |
 
 **Authentication Flow**:
+
 1. User registers with email, name, and password
 2. Password is SHA-256 hashed, then bcrypt hashed
 3. On login, JWT token is generated and stored in HTTP-only cookie
@@ -69,6 +78,7 @@ Table: users
 5. Other services validate tokens using auth_guard
 
 **Technologies Used**:
+
 - FastAPI for API framework
 - SQLAlchemy for ORM
 - Alembic for database migrations
@@ -78,13 +88,79 @@ Table: users
 
 ---
 
-### 2. Product Service (Port 8001)
+### 2. Product Service (Port 8001) ⚠️ Commented in Docker
+
+**Purpose**: Product and category management system with rate limiting
+
+**Database**: `product_service` on PostgreSQL (Port 5433)
+
+**Key Responsibilities**:
+
+- CRUD operations for items
+- CRUD operations for categories
+- Item-category relationship management
+- Rate limiting with Redis
+- Protected endpoints (requires authentication)
+
+**Database Schema**:
+
+```sql
+Table: categories
+- id: INTEGER (Primary Key, Auto-increment)
+- name: VARCHAR(100) (Indexed)
+- slug: VARCHAR(50) (Indexed)
+- description: TEXT (Nullable)
+
+Table: items
+- id: INTEGER (Primary Key, Auto-increment)
+- name: VARCHAR(100) (Indexed)
+- description: TEXT (Nullable)
+- category_id: INTEGER (Foreign Key -> categories.id)
+
+Relationship: One Category -> Many Items
+```
+
+**API Endpoints**:
+
+| Method | Endpoint           | Description                | Auth Required |
+| ------ | ------------------ | -------------------------- | ------------- |
+| GET    | `/`                | Health check               | No            |
+| POST   | `/items/`          | Create new item            | Yes           |
+| GET    | `/items/`          | List all items (paginated) | Yes           |
+| GET    | `/items/{item_id}` | Get specific item          | Yes           |
+| PUT    | `/items/{item_id}` | Update item                | Yes           |
+| POST   | `/categories/`     | Create new category        | Yes           |
+| GET    | `/categories/`     | List all categories        | Yes           |
+| GET    | `/categories/{id}` | Get specific category      | Yes           |
+
+**Features**:
+
+- Pagination support (skip/limit parameters)
+- Eager loading with joinedload for efficient queries
+- Category validation on item creation
+- Comprehensive error handling
+- Structured logging
+- Redis-based rate limiting
+
+**Technologies Used**:
+
+- FastAPI for API framework
+- SQLAlchemy with relationship mapping
+- Alembic for database migrations
+- Pydantic for data validation
+- PostgreSQL for data storage
+- Redis for rate limiting
+
+---
+
+### 3. Inventory Service (Port 8002) ⚠️ Commented in Docker
 
 **Purpose**: Product and category management system
 
 **Database**: `product_service` on PostgreSQL (Port 5433)
 
 **Key Responsibilities**:
+
 - CRUD operations for items
 - CRUD operations for categories
 - Item-category relationship management
@@ -110,18 +186,19 @@ Relationship: One Category -> Many Items
 
 **API Endpoints**:
 
-| Method | Endpoint              | Description               | Auth Required |
-|--------|-----------------------|---------------------------|---------------|
-| GET    | `/`                   | Health check              | No            |
-| POST   | `/items/`             | Create new item           | Yes           |
-| GET    | `/items/`             | List all items (paginated)| Yes           |
-| GET    | `/items/{item_id}`    | Get specific item         | Yes           |
-| PUT    | `/items/{item_id}`    | Update item               | Yes           |
-| POST   | `/categories/`        | Create new category       | Yes           |
-| GET    | `/categories/`        | List all categories       | Yes           |
-| GET    | `/categories/{id}`    | Get specific category     | Yes           |
+| Method | Endpoint           | Description                | Auth Required |
+| ------ | ------------------ | -------------------------- | ------------- |
+| GET    | `/`                | Health check               | No            |
+| POST   | `/items/`          | Create new item            | Yes           |
+| GET    | `/items/`          | List all items (paginated) | Yes           |
+| GET    | `/items/{item_id}` | Get specific item          | Yes           |
+| PUT    | `/items/{item_id}` | Update item                | Yes           |
+| POST   | `/categories/`     | Create new category        | Yes           |
+| GET    | `/categories/`     | List all categories        | Yes           |
+| GET    | `/categories/{id}` | Get specific category      | Yes           |
 
 **Features**:
+
 - Pagination support (skip/limit parameters)
 - Eager loading with joinedload for efficient queries
 - Category validation on item creation
@@ -129,21 +206,19 @@ Relationship: One Category -> Many Items
 - Structured logging
 
 **Technologies Used**:
+
 - FastAPI for API framework
 - SQLAlchemy with relationship mapping
 - Alembic for database migrations
 - Pydantic for data validation
 - PostgreSQL for data storage
 
----
-
-### 3. Inventory Service (Port 8002)
-
 **Purpose**: Inventory management with product service integration
 
 **Database**: `inventory_service` on PostgreSQL (Port 5434)
 
 **Key Responsibilities**:
+
 - Inventory tracking and management
 - Inter-service communication with Product Service
 - Category validation against Product Service
@@ -165,13 +240,14 @@ Table: inventory
 
 **API Endpoints**:
 
-| Method | Endpoint         | Description                          | Auth Required |
-|--------|------------------|--------------------------------------|---------------|
-| GET    | `/`              | Health check                         | No            |
-| POST   | `/inventory/`    | Create inventory with validation     | Yes           |
-| GET    | `/inventory/`    | List all inventory items             | Yes           |
+| Method | Endpoint      | Description                      | Auth Required |
+| ------ | ------------- | -------------------------------- | ------------- |
+| GET    | `/`           | Health check                     | No            |
+| POST   | `/inventory/` | Create inventory with validation | Yes           |
+| GET    | `/inventory/` | List all inventory items         | Yes           |
 
 **Inter-Service Communication**:
+
 - Uses `httpx` AsyncClient for HTTP requests
 - Fetches category details from Product Service
 - Validates category existence before inventory creation
@@ -179,6 +255,7 @@ Table: inventory
 - Configurable Product Service URL via environment variable
 
 **Integration Pattern**:
+
 ```python
 # Example flow:
 1. Inventory service receives create request with category_id
@@ -189,10 +266,254 @@ Table: inventory
 ```
 
 **Technologies Used**:
+
 - FastAPI for API framework
 - SQLAlchemy for ORM
 - httpx for async HTTP client
 - PostgreSQL for data storage
+
+---
+
+### 4. Booking Service (Port 8003) ✅ Active
+
+**Purpose**: Movie theater booking system with Elasticsearch integration
+
+**Database**: `booking_service` on PostgreSQL (Port 5436)
+
+**Key Responsibilities**:
+
+- Theater management
+- Movie management
+- Showtime/showing management
+- Seat management and availability
+- Booking creation and management
+- Booking seat associations
+- Full-text search across movies, theaters, showings, and bookings using Elasticsearch
+- Web scraping for upcoming IPOs (optional feature)
+
+**Database Schema**:
+
+```sql
+Table: theaters
+- id: UUID (Primary Key)
+- name: VARCHAR(255)
+- address: TEXT
+- capacity: INTEGER
+
+Table: movies
+- id: UUID (Primary Key)
+- title: VARCHAR(255)
+- description: TEXT
+- duration: INTEGER
+- genre: VARCHAR(100)
+
+Table: showings
+- id: UUID (Primary Key)
+- movie_id: UUID (Foreign Key -> movies.id)
+- theater_id: UUID (Foreign Key -> theaters.id)
+- show_time: TIMESTAMP
+- price: DECIMAL
+
+Table: seats
+- id: UUID (Primary Key)
+- theater_id: UUID (Foreign Key -> theaters.id)
+- row_number: VARCHAR(10)
+- seat_number: INTEGER
+- seat_type: VARCHAR(50)
+
+Table: bookings
+- id: UUID (Primary Key)
+- user_id: UUID
+- showing_id: UUID (Foreign Key -> showings.id)
+- booking_number: VARCHAR(255) (Unique)
+- total_price: DECIMAL
+- status: ENUM (confirmed, cancelled, refunded)
+- created_at: TIMESTAMP
+
+Table: booking_seats
+- id: UUID (Primary Key)
+- booking_id: UUID (Foreign Key -> bookings.id)
+- seat_id: UUID (Foreign Key -> seats.id)
+- showing_id: UUID (Foreign Key -> showings.id)
+```
+
+**API Endpoints**:
+
+| Method | Endpoint                 | Description                     | Auth Required |
+| ------ | ------------------------ | ------------------------------- | ------------- |
+| GET    | `/`                      | Health check                    | No            |
+| POST   | `/theaters/`             | Create theater                  | Yes           |
+| GET    | `/theaters/`             | List all theaters               | Yes           |
+| POST   | `/movies/`               | Create movie                    | Yes           |
+| GET    | `/movies/`               | List all movies                 | Yes           |
+| POST   | `/showings/`             | Create showing                  | Yes           |
+| GET    | `/showings/`             | List all showings               | Yes           |
+| POST   | `/seats/`                | Create seat                     | Yes           |
+| GET    | `/seats/`                | List all seats                  | Yes           |
+| POST   | `/bookings/`             | Create booking                  | Yes           |
+| GET    | `/bookings/`             | List all bookings               | Yes           |
+| POST   | `/booking_seats/`        | Create booking seat association | Yes           |
+| GET    | `/search/?query={query}` | Search across indices           | Yes           |
+| POST   | `/scrap/`                | Scrape upcoming IPOs            | No            |
+
+**Elasticsearch Integration**:
+
+- Automatic index creation on startup
+- Multi-index search (movies, theaters, showings, bookings)
+- Full-text search with relevance scoring
+- Indexed fields: titles, descriptions, addresses, booking numbers
+- Health check integration
+
+**Features**:
+
+- Seat availability validation
+- Booking status management (confirmed, cancelled, refunded)
+- Unique booking number generation
+- Showing expiration validation
+- Repository pattern for data access
+- Service layer for business logic
+- Comprehensive error handling
+
+**Technologies Used**:
+
+- FastAPI for API framework
+- SQLAlchemy with UUID primary keys
+- PostgreSQL for data storage
+- Elasticsearch 8.11.0 for search functionality
+- Playwright/Chromium for web scraping (optional)
+
+---
+
+### 5. Food Service (Port 8004) ⚠️ Commented in Docker
+
+**Purpose**: Food ordering system with restaurant and menu management
+
+**Database**: `food_service` on PostgreSQL (Port 5437)
+
+**Key Responsibilities**:
+
+- Category management for food items
+- Restaurant management
+- Food item management
+- Menu management (linking foods to restaurants)
+- Order management with user association
+- WebSocket support for real-time updates
+- Optional database sharding for horizontal scaling
+- Rate limiting with Redis
+
+**Database Schema**:
+
+```sql
+Table: categories
+- id: UUID (Primary Key)
+- name: VARCHAR(255)
+- description: TEXT
+
+Table: restaurants
+- id: UUID (Primary Key)
+- name: VARCHAR(255)
+- address: TEXT
+- phone: VARCHAR(50)
+
+Table: foods
+- id: UUID (Primary Key)
+- name: VARCHAR(255)
+- description: TEXT
+- category_id: UUID (Foreign Key -> categories.id)
+- price: DECIMAL
+
+Table: menu
+- id: UUID (Primary Key)
+- restaurant_id: UUID (Foreign Key -> restaurants.id)
+- food_id: UUID (Foreign Key -> foods.id)
+- category_id: UUID (Foreign Key -> categories.id)
+- price: DECIMAL
+
+Table: orders
+- id: UUID (Primary Key)
+- user_id: UUID
+- total_amount: DECIMAL
+- status: VARCHAR(50)
+- created_at: TIMESTAMP
+
+Table: food_orders
+- id: UUID (Primary Key)
+- order_id: UUID (Foreign Key -> orders.id)
+- food_id: UUID (Foreign Key -> foods.id)
+- quantity: INTEGER
+- price: DECIMAL
+```
+
+**API Endpoints**:
+
+| Method | Endpoint                            | Description                  | Auth Required |
+| ------ | ----------------------------------- | ---------------------------- | ------------- |
+| GET    | `/`                                 | Health check                 | No            |
+| GET    | `/health/shards`                    | Shard health status          | No            |
+| POST   | `/categories/`                      | Create category              | Yes           |
+| GET    | `/categories/`                      | Get all categories           | Yes           |
+| GET    | `/categories/{id}`                  | Get category by ID           | Yes           |
+| POST   | `/restaurants/`                     | Create restaurant            | Yes           |
+| GET    | `/restaurants/`                     | Get all restaurants          | Yes           |
+| GET    | `/restaurants/{id}`                 | Get restaurant by ID         | Yes           |
+| POST   | `/foods/`                           | Create food item             | Yes           |
+| GET    | `/foods/`                           | Get all foods (rate limited) | Yes           |
+| GET    | `/foods/{id}`                       | Get food by ID               | Yes           |
+| POST   | `/menu/`                            | Create menu item             | Yes           |
+| GET    | `/menu/`                            | Get all menus                | Yes           |
+| GET    | `/menu/{id}`                        | Get menu by ID               | Yes           |
+| GET    | `/menu/restaurants/{restaurant_id}` | Get menus by restaurant ID   | Yes           |
+| POST   | `/orders/`                          | Create order                 | Yes           |
+| GET    | `/orders/`                          | Get all orders               | Yes           |
+| GET    | `/orders/{id}`                      | Get order by ID              | Yes           |
+| WS     | `/ws`                               | WebSocket endpoint           | No            |
+
+**Advanced Features**:
+
+- **Database Sharding**: Optional horizontal scaling with multiple database shards
+  - Enable with `ENABLE_SHARDING=true` environment variable
+  - Automatic table creation on all shards
+  - Health check endpoint for shard status
+  - Shard-aware query routing
+- **Rate Limiting**: Redis-based rate limiting (5 requests per 30 seconds for foods endpoint)
+- **WebSocket Support**: Real-time communication for order updates
+- **Repository Pattern**: Clean separation of data access logic
+- **Service Layer**: Business logic abstraction
+
+**Technologies Used**:
+
+- FastAPI for API framework
+- SQLAlchemy with UUID primary keys
+- PostgreSQL for data storage
+- Redis for caching and rate limiting
+- WebSocket support for real-time updates
+- Alembic for database migrations
+
+---
+
+### 6. Client (React Frontend) ⚠️ Commented in Docker
+
+**Purpose**: Modern React frontend for interacting with all microservices
+
+**Port**: 5173 (development)
+
+**Key Features**:
+
+- TypeScript for type safety
+- React Router for navigation
+- Axios for API communication
+- Tailwind CSS for styling
+- Vite for fast development and building
+- Context API for state management
+
+**Technologies Used**:
+
+- React 19.2.0
+- TypeScript 5.9.3
+- Vite 7.2.2
+- Tailwind CSS 4.1.17
+- React Router DOM 7.9.6
+- Axios 1.13.2
 
 ---
 
@@ -201,6 +522,7 @@ Table: inventory
 ### JWT Token Authentication
 
 **Token Generation** (Auth Service):
+
 ```python
 - Algorithm: HS256
 - Expiration: 60 minutes (configurable)
@@ -210,6 +532,7 @@ Table: inventory
 ```
 
 **Cookie Configuration**:
+
 ```python
 - httponly: True (prevents JavaScript access)
 - secure: True (HTTPS only in production)
@@ -218,6 +541,7 @@ Table: inventory
 ```
 
 **Auth Guard Implementation**:
+
 ```python
 # All protected routes use auth_guard dependency
 # Validates token from cookie
@@ -228,6 +552,7 @@ Table: inventory
 ### Password Security
 
 **Hashing Strategy**:
+
 1. SHA-256 pre-hashing (handles passwords > 72 bytes)
 2. Bcrypt hashing (industry standard, with salt)
 3. Automatic deprecation handling via passlib
@@ -242,6 +567,7 @@ Table: inventory
 ```
 
 **Production Recommendations**:
+
 - ✅ Set specific allowed origins
 - ✅ Use HTTPS/TLS
 - ✅ Implement rate limiting
@@ -254,70 +580,119 @@ Table: inventory
 ## 🛠️ Technology Stack
 
 ### Core Framework
+
 - **FastAPI** 0.120.1 - Modern, fast web framework
 - **Python** 3.14 - Programming language
 - **Uvicorn** 0.38.0 - ASGI server with auto-reload
 
 ### Database & ORM
+
 - **PostgreSQL** 16 (Alpine) - Relational database
 - **SQLAlchemy** 2.0.23 - Python SQL toolkit and ORM
 - **Alembic** 1.13.1 - Database migration tool
 - **psycopg2-binary** 2.9.11 - PostgreSQL adapter
 
 ### Authentication & Security
+
 - **python-jose** 3.3.0 - JWT token handling
 - **passlib** 1.7.4 - Password hashing library
 - **bcrypt** 4.1.2 - Password hashing algorithm
 
 ### Data Validation
+
 - **Pydantic** 2.12.3 - Data validation using Python type hints
 - **pydantic_core** 2.41.4 - Core validation logic
 
 ### HTTP Client
+
 - **httpx** - Async HTTP client for inter-service communication
 
 ### Utilities
+
 - **python-dotenv** 1.0.0 - Environment variable management
 
 ### Infrastructure
+
 - **Docker** & **Docker Compose** - Containerization
 - Custom bridge network for service communication
 - Persistent volumes for database data
+- **Redis** 7-alpine - Caching and rate limiting
+- **Elasticsearch** 8.11.0 - Full-text search engine
+
+### Frontend
+
+- **React** 19.2.0 - UI framework
+- **TypeScript** 5.9.3 - Type safety
+- **Vite** 7.2.2 - Build tool
+- **Tailwind CSS** 4.1.17 - Styling
+- **React Router** 7.9.6 - Routing
 
 ---
 
 ## 🔄 Inter-Service Communication
 
-### Communication Pattern
+### Communication Patterns
 
-**Synchronous HTTP/REST**:
+**1. Synchronous HTTP/REST**:
+
 - Inventory Service → Product Service (category validation)
+- Booking Service → Auth Service (token validation)
+- Food Service → Auth Service (token validation)
 - Uses async httpx client for non-blocking operations
 - JWT cookie forwarding for authentication
 - Timeout handling (10 seconds)
 - Follow redirects enabled
 
+**2. WebSocket (Real-time)**:
+
+- Food Service provides WebSocket endpoint at `/ws`
+- Real-time order updates and notifications
+- Bidirectional communication
+
+**3. Search Integration**:
+
+- Booking Service → Elasticsearch (full-text search)
+- Multi-index search across movies, theaters, showings, bookings
+- Async Elasticsearch client
+
+**4. Caching & Rate Limiting**:
+
+- Food Service → Redis (rate limiting)
+- Product Service → Redis (rate limiting)
+- In-memory caching for frequently accessed data
+
 ### Service Discovery
 
 **Docker Environment** (Production-like):
+
 ```
 Services communicate using container names:
 - http://auth-service:8000
 - http://product-service:8001
 - http://inventory-service:8002
+- http://booking-service:8003
+- http://food-service:8004
+- http://elasticsearch:9200
+- redis://redis:6379
 ```
 
 **Local Development**:
+
 ```
 Services communicate using localhost:
-- http://localhost:8000
-- http://localhost:8001
-- http://localhost:8002
+- http://localhost:8000 (Auth)
+- http://localhost:8001 (Product)
+- http://localhost:8002 (Inventory)
+- http://localhost:8003 (Booking)
+- http://localhost:8004 (Food)
+- http://localhost:9200 (Elasticsearch)
+- redis://localhost:6379 (Redis)
 ```
 
 ### Error Handling
 
 **Strategies**:
+
 - HTTP status code propagation
 - Graceful degradation
 - Timeout management
@@ -330,25 +705,38 @@ Services communicate using localhost:
 
 ### Docker Compose Setup
 
-**3 Services + 3 Databases**:
+**Active Services**:
+
 ```yaml
 Networks:
 - microservices-network (bridge driver)
 
-Services:
-1. auth-service + auth-db (PostgreSQL)
-2. product-service + product-db (PostgreSQL)
-3. inventory-service + inventory-db (PostgreSQL)
+Active Services:
+1. auth-service + auth-db (PostgreSQL) ✅
+2. booking-service + booking-db (PostgreSQL) ✅
+3. elasticsearch ✅
+4. redis ✅
+
+Commented Services (can be enabled):
+5. product-service + product-db (PostgreSQL) ⚠️
+6. inventory-service + inventory-db (PostgreSQL) ⚠️
+7. food-service + food-db (PostgreSQL) ⚠️
+8. client (React frontend) ⚠️
 
 Volumes:
 - auth-db-data (persistent storage)
-- product-db-data (persistent storage)
-- inventory-db-data (persistent storage)
+- booking-db-data (persistent storage)
+- elasticsearch-data (persistent storage)
+- redis-data (persistent storage)
+- product-db-data (commented)
+- inventory-db-data (commented)
+- food-db-data (commented)
 ```
 
 ### Health Checks
 
 All databases include health checks:
+
 ```yaml
 healthcheck:
   test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -360,6 +748,7 @@ healthcheck:
 ### Volume Mounts
 
 Development mode with hot reload:
+
 ```yaml
 volumes:
   - ./auth-service:/app
@@ -370,6 +759,7 @@ volumes:
 ### Environment Variables
 
 **Common across services**:
+
 ```
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=admin
@@ -379,38 +769,62 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 **Service-specific**:
+
 ```
 Auth Service:
 - POSTGRES_DB=auth_service
 - POSTGRES_HOST=auth-db
 
-Product Service:
+Product Service (commented):
 - POSTGRES_DB=product_service
 - POSTGRES_HOST=product-db
-- INVENTORY_SERVICE_URL=http://inventory-service:8002
+- REDIS_URL=redis://redis:6379
 
-Inventory Service:
+Inventory Service (commented):
 - POSTGRES_DB=inventory_service
 - POSTGRES_HOST=inventory-db
 - PRODUCT_SERVICE_URL=http://product-service:8001
+
+Booking Service:
+- POSTGRES_DB=booking_service
+- POSTGRES_HOST=booking-db
+- ELASTICSEARCH_HOST=elasticsearch
+- ELASTICSEARCH_PORT=9200
+- ELASTICSEARCH_URL=http://elasticsearch:9200
+
+Food Service (commented):
+- POSTGRES_DB=food_service
+- POSTGRES_HOST=food-db
+- REDIS_URL=redis://redis:6379
+- ENABLE_SHARDING=false (set to true for sharding)
 ```
 
 ---
 
 ## 📊 Database Migrations (Alembic)
 
-**Auth Service & Product Service** use Alembic for schema management.
+**Auth Service, Product Service, Booking Service, and Food Service** use Alembic for schema management.
 
 ### Migration Files
 
 **Auth Service**:
+
 - `b573df09ec59_initial_migration.py` - Initial users table
 - `746836963f64_token_added_in_user_table.py` - Token field added
 - `840c09b4f9e0_token_removed.py` - Token field removed
 
 **Product Service**:
+
 - Uses same migration structure
 - Manages categories and items tables
+
+**Booking Service**:
+
+- Manages theaters, movies, showings, seats, bookings, and booking_seats tables
+
+**Food Service**:
+
+- Manages categories, restaurants, foods, menu, orders, and food_orders tables
 
 ### Common Commands
 
@@ -435,14 +849,23 @@ alembic history
 ### 1. Local Development
 
 ```bash
-# Terminal 1
+# Terminal 1 - Auth Service
 cd auth-service && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
-# Terminal 2
+# Terminal 2 - Product Service (if enabled)
 cd product-service && source venv/bin/activate && uvicorn main:app --reload --port 8001
 
-# Terminal 3
+# Terminal 3 - Inventory Service (if enabled)
 cd inventory-service && source venv/bin/activate && uvicorn main:app --reload --port 8002
+
+# Terminal 4 - Booking Service
+cd booking-service && source venv/bin/activate && uvicorn main:app --reload --port 8003
+
+# Terminal 5 - Food Service (if enabled)
+cd food-service && source venv/bin/activate && uvicorn main:app --reload --port 8004
+
+# Terminal 6 - Client (React Frontend)
+cd client && npm run dev
 ```
 
 ### 2. Docker Compose (Recommended)
@@ -464,6 +887,7 @@ docker-compose down -v
 ### 3. Production (Future)
 
 **Options**:
+
 - **Kubernetes**: Container orchestration
 - **AWS ECS/Fargate**: Managed container service
 - **Docker Swarm**: Native Docker clustering
@@ -486,9 +910,12 @@ Level: INFO
 ### Log Files
 
 Each service maintains its own log:
+
 - `auth-service/app.log`
 - `product-service/app.log`
 - `inventory-service/app.log`
+- `booking-service/app.log`
+- `food-service/app.log`
 
 ### Future Enhancements
 
@@ -505,25 +932,42 @@ Each service maintains its own log:
 ### Design Patterns Implemented
 
 1. **Microservices Architecture**
+
    - Service isolation
    - Independent databases
    - Autonomous deployment
 
 2. **Repository Pattern**
-   - Database access abstraction
+
+   - Database access abstraction (Booking Service, Food Service)
    - Dependency injection via FastAPI's Depends()
 
-3. **Middleware Pattern**
+3. **Service Layer Pattern**
+
+   - Business logic separation (Booking Service, Food Service)
+   - Clean architecture principles
+
+4. **Middleware Pattern**
+
    - CORS middleware
    - Authentication middleware (can be enabled globally)
 
-4. **Lifespan Events**
+5. **Lifespan Events**
+
    - Database initialization on startup
+   - Elasticsearch index creation (Booking Service)
+   - Redis connection management (Food Service)
    - Graceful connection cleanup on shutdown
 
-5. **Request/Response Pattern**
+6. **Request/Response Pattern**
+
    - Pydantic schemas for validation
    - Clear separation of models and schemas
+
+7. **Database Sharding Pattern** (Food Service - Optional)
+   - Horizontal scaling support
+   - Shard-aware routing
+   - Health monitoring per shard
 
 ### Error Handling Strategy
 
@@ -550,6 +994,7 @@ All services provide auto-generated documentation:
 ### Example Request Flow
 
 **1. User Registration**:
+
 ```bash
 POST http://localhost:8000/auth/
 Body: {"email": "user@example.com", "name": "John Doe", "password": "secure123"}
@@ -557,6 +1002,7 @@ Response: {"id": 1, "email": "user@example.com", "name": "John Doe"}
 ```
 
 **2. User Login**:
+
 ```bash
 POST http://localhost:8000/auth/login
 Body: {"email": "user@example.com", "password": "secure123"}
@@ -565,6 +1011,7 @@ Sets-Cookie: access_token=<jwt_token>
 ```
 
 **3. Create Category** (requires authentication):
+
 ```bash
 POST http://localhost:8001/categories/
 Cookie: access_token=<jwt_token>
@@ -573,6 +1020,7 @@ Response: {"id": 1, "name": "Electronics", "slug": "electronics", "description":
 ```
 
 **4. Create Item** (requires authentication):
+
 ```bash
 POST http://localhost:8001/items/
 Cookie: access_token=<jwt_token>
@@ -581,6 +1029,7 @@ Response: {"id": 1, "name": "Laptop", "description": "Gaming laptop", "category_
 ```
 
 **5. Create Inventory** (requires authentication + validates category):
+
 ```bash
 POST http://localhost:8002/inventory/
 Cookie: access_token=<jwt_token>
@@ -594,6 +1043,41 @@ Body: {
   "reorder_point": 10
 }
 Response: Inventory record with validated category name
+```
+
+**6. Create Booking** (Booking Service):
+
+```bash
+POST http://localhost:8003/bookings/
+Cookie: access_token=<jwt_token>
+Body: {
+  "showing_id": "uuid-here",
+  "seats_ids": ["uuid1", "uuid2"],
+  "total_price": 25.99
+}
+Response: Booking with booking_number and status
+```
+
+**7. Search** (Booking Service - Elasticsearch):
+
+```bash
+GET http://localhost:8003/search/?query=action&indices=movies,theaters
+Cookie: access_token=<jwt_token>
+Response: Search results from specified indices
+```
+
+**8. Create Food Order** (Food Service):
+
+```bash
+POST http://localhost:8004/orders/
+Cookie: access_token=<jwt_token>
+Body: {
+  "foods": [
+    {"food_id": "uuid-here", "quantity": 2}
+  ],
+  "total_amount": 29.98
+}
+Response: Order with user association
 ```
 
 ---
@@ -617,7 +1101,7 @@ fastapi-learning/
 ├── product-service/
 │   ├── alembic/              # Database migrations
 │   ├── api/endpoints/        # Item & category endpoints
-│   ├── core/                 # Database, middleware, utils
+│   ├── core/                 # Database, middleware, rate limiting
 │   ├── models/               # SQLAlchemy models (Item, Category)
 │   ├── schemas/              # Pydantic schemas
 │   ├── venv/                 # Virtual environment
@@ -637,6 +1121,47 @@ fastapi-learning/
 │   ├── requirements.txt      # Python dependencies
 │   ├── Dockerfile            # Container definition
 │   └── env.example           # Environment template
+│
+├── booking-service/
+│   ├── alembic/              # Database migrations
+│   ├── api/v1/routes/        # API routes (theaters, movies, showings, etc.)
+│   ├── core/                 # Elasticsearch client, utils
+│   ├── models/               # SQLAlchemy models (Theater, Movie, Booking, etc.)
+│   ├── schemas/              # Pydantic schemas
+│   ├── services/             # Business logic layer
+│   ├── repository/           # Data access layer
+│   ├── venv/                 # Virtual environment
+│   ├── main.py               # Application entry point
+│   ├── requirements.txt      # Python dependencies
+│   ├── Dockerfile            # Container definition
+│   └── Booking_Service.postman_collection.json
+│
+├── food-service/
+│   ├── alembic/              # Database migrations
+│   ├── api/v1/routes/        # API routes (categories, restaurants, foods, etc.)
+│   ├── core/                 # Redis client, sharding, rate limiter, WebSocket
+│   ├── models/               # SQLAlchemy models (Category, Restaurant, Food, etc.)
+│   ├── schemas/              # Pydantic schemas
+│   ├── services/             # Business logic layer
+│   ├── repository/           # Data access layer
+│   ├── venv/                 # Virtual environment
+│   ├── main.py               # Application entry point
+│   ├── requirements.txt      # Python dependencies
+│   ├── Dockerfile            # Container definition
+│   └── RATE_LIMITER_EXPLANATION.md
+│
+├── client/
+│   ├── src/                  # React source code
+│   │   ├── api/              # API clients
+│   │   ├── components/       # React components
+│   │   ├── pages/            # Page components
+│   │   ├── context/          # Context providers
+│   │   └── utils/            # Utility functions
+│   ├── public/               # Static assets
+│   ├── package.json          # Dependencies
+│   ├── vite.config.ts        # Vite configuration
+│   ├── tailwind.config.js    # Tailwind configuration
+│   └── Dockerfile            # Container definition
 │
 ├── docker-compose.yml        # Multi-service orchestration
 ├── DOCKER_SETUP.md           # Docker documentation
@@ -664,6 +1189,14 @@ This project showcases:
 12. ✅ **Environment Configuration** - Secure config management
 13. ✅ **Type Safety** - Pydantic validation
 14. ✅ **Async Programming** - Async/await for I/O operations
+15. ✅ **Elasticsearch Integration** - Full-text search across multiple indices
+16. ✅ **Redis Integration** - Caching and rate limiting
+17. ✅ **WebSocket Support** - Real-time communication
+18. ✅ **Repository Pattern** - Clean data access layer
+19. ✅ **Service Layer Pattern** - Business logic separation
+20. ✅ **Database Sharding** - Optional horizontal scaling
+21. ✅ **Rate Limiting** - Redis-based request throttling
+22. ✅ **React Frontend** - Modern TypeScript-based UI
 
 ---
 
@@ -672,36 +1205,41 @@ This project showcases:
 ### Current Limitations
 
 1. **No Circuit Breaker** - Service failures not isolated
-2. **No Message Queue** - Only synchronous communication
-3. **No Caching** - No Redis or in-memory caching
-4. **No Rate Limiting** - Vulnerable to abuse
+2. **No Message Queue** - Only synchronous communication (WebSocket available in Food Service)
+3. **Limited Caching** - Redis used for rate limiting, not general caching
+4. **Partial Rate Limiting** - Only implemented in Food Service and Product Service
 5. **Basic Logging** - No centralized log aggregation
 6. **No Monitoring** - No metrics collection
 7. **No Service Mesh** - Manual service discovery
 8. **No API Gateway** - Direct service access
 9. **Inventory Service** - No Alembic migrations set up
+10. **Some Services Commented** - Product, Inventory, Food services commented in docker-compose
 
 ### Roadmap
 
 **Phase 1: Resilience**
+
 - 🔲 Circuit breaker pattern (e.g., with tenacity)
 - 🔲 Retry logic with exponential backoff
 - 🔲 Health check endpoints
 - 🔲 Graceful degradation
 
 **Phase 2: Scalability**
+
 - 🔲 Redis caching layer
 - 🔲 Message queue (RabbitMQ/Kafka)
 - 🔲 Event-driven architecture
 - 🔲 Load balancing
 
 **Phase 3: Observability**
+
 - 🔲 Prometheus metrics
 - 🔲 Grafana dashboards
 - 🔲 Distributed tracing
 - 🔲 ELK stack
 
 **Phase 4: Production Readiness**
+
 - 🔲 API Gateway (Kong/Traefik)
 - 🔲 Service mesh (Istio)
 - 🔲 Kubernetes deployment
@@ -765,22 +1303,32 @@ This architecture is suitable for:
 
 ## 🎉 Summary
 
-This project demonstrates a **production-ready microservices architecture** with:
-- ✅ 3 independent services (Auth, Product, Inventory)
-- ✅ 3 separate PostgreSQL databases
+This project demonstrates a **comprehensive microservices architecture** with:
+
+- ✅ 5 independent services (Auth, Product, Inventory, Booking, Food)
+- ✅ 5 separate PostgreSQL databases (one per service)
+- ✅ React frontend with TypeScript
 - ✅ JWT-based authentication with secure password hashing
 - ✅ Inter-service HTTP communication
+- ✅ WebSocket support for real-time updates
+- ✅ Elasticsearch integration for full-text search
+- ✅ Redis for caching and rate limiting
 - ✅ Docker containerization with compose
 - ✅ Database migrations with Alembic
+- ✅ Optional database sharding (Food Service)
+- ✅ Repository and Service layer patterns
 - ✅ Comprehensive error handling and logging
 - ✅ Auto-generated API documentation
 - ✅ Type-safe validation with Pydantic
+- ✅ Rate limiting implementation
 
-**Perfect for**: Learning microservices, building MVPs, understanding distributed systems, or as a template for larger projects.
+**Active Services**: Auth Service, Booking Service, Elasticsearch, Redis
+**Available Services** (commented in docker-compose): Product Service, Inventory Service, Food Service, Client
+
+**Perfect for**: Learning microservices, building MVPs, understanding distributed systems, implementing search functionality, real-time applications, or as a template for larger projects.
 
 ---
 
-**Last Updated**: November 6, 2025
+**Last Updated**: January 2025
 **Project Status**: Active Development
 **License**: MIT
-

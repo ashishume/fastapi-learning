@@ -89,14 +89,14 @@ app.middleware("http")(add_rate_limit_headers)
 # Include routers
 app.include_router(
     items.router,
-    prefix="/items",
+    prefix="/product/items",
     tags=["items"],
     # auth guard for all routes inside the items router
     dependencies=[Depends(auth_guard)],
 )
 app.include_router(
     categories.router,
-    prefix="/categories",
+    prefix="/product/categories",
     tags=["categories"],
     dependencies=[Depends(auth_guard)],
 )

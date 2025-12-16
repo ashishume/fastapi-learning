@@ -91,14 +91,14 @@ app.add_middleware(
 
 # Include routers
 routes = [
-    (theaters.router, "/theaters", ["theaters"], [Depends(auth_guard)]),
-    (movies.router, "/movies", ["movies"], [Depends(auth_guard)]),
-    (showings.router, "/showings", ["showings"], [Depends(auth_guard)]),
-    (seats.router, "/seats", ["seats"], [Depends(auth_guard)]),
-    (booking.router, "/bookings", ["bookings"], [Depends(auth_guard)]),
-    (booking_seats.router, "/booking_seats", ["booking_seats"], [Depends(auth_guard)]),
-    (search.router, "/search", ["search"], [Depends(auth_guard)]),
-    (upcoming_ipo_scrap.router, "/scrap", ["scrap"], []),
+    (theaters.router, "/booking/theaters", ["theaters"], [Depends(auth_guard)]),
+    (movies.router, "/booking/movies", ["movies"], [Depends(auth_guard)]),
+    (showings.router, "/booking/showings", ["showings"], [Depends(auth_guard)]),
+    (seats.router, "/booking/seats", ["seats"], [Depends(auth_guard)]),
+    (booking.router, "/booking/bookings", ["bookings"], [Depends(auth_guard)]),
+    (booking_seats.router, "/booking/booking_seats", ["booking_seats"], [Depends(auth_guard)]),
+    (search.router, "/booking/search", ["search"], [Depends(auth_guard)]),
+    (upcoming_ipo_scrap.router, "/booking/scrap", ["scrap"], []),
 ]
 
 for router, prefix, tags, dependencies in routes:
