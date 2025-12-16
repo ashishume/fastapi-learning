@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "IPO Tracker",
+  "version": "1.0.0",
+  "description": "Track IPO information and updates",
+  "permissions": ["storage", "activeTab", "alarms"],
+  "host_permissions": ["https://*/*", "http://localhost:8003/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/money.svg",
+      "48": "icons/money.svg",
+      "128": "icons/money.svg"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "16": "icons/money.svg",
+    "48": "icons/money.svg",
+    "128": "icons/money.svg"
+  },
+  "options_page": "options.html"
+}
