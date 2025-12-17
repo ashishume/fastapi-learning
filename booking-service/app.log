@@ -8372,3 +8372,69 @@
 2025-12-16 18:16:28,389 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:200 duration:0.001s]
 2025-12-16 18:16:28,389 - core.elasticsearch_client - INFO - Elasticsearch index already exists: bookings
 2025-12-16 18:16:28,389 - main - INFO - Elasticsearch indices setup complete
+2025-12-16 18:58:34,131 - main - INFO - Shutting down application...
+2025-12-16 18:58:34,132 - main - INFO - Closing database connections...
+2025-12-16 18:58:34,134 - main - INFO - Closing Elasticsearch client...
+2025-12-16 18:58:34,135 - core.elasticsearch_client - INFO - Elasticsearch client connection closed
+2025-12-16 18:58:34,135 - main - INFO - Application shutdown complete
+2025-12-16 18:59:19,277 - main - INFO - Starting up application...
+2025-12-16 18:59:19,277 - main - INFO - Creating database tables...
+2025-12-16 18:59:19,306 - main - INFO - Database tables created successfully
+2025-12-16 18:59:19,306 - main - INFO - Initializing Elasticsearch client...
+2025-12-16 18:59:19,348 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/ [status:200 duration:0.041s]
+2025-12-16 18:59:19,348 - core.elasticsearch_client - INFO - Successfully connected to Elasticsearch at http://elasticsearch:9200
+2025-12-16 18:59:19,348 - main - INFO - Elasticsearch client initialized successfully
+2025-12-16 18:59:19,348 - main - INFO - Setting up Elasticsearch indices...
+2025-12-16 18:59:19,352 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/movies [status:200 duration:0.004s]
+2025-12-16 18:59:19,353 - core.elasticsearch_client - INFO - Elasticsearch index already exists: movies
+2025-12-16 18:59:19,354 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/theaters [status:200 duration:0.001s]
+2025-12-16 18:59:19,354 - core.elasticsearch_client - INFO - Elasticsearch index already exists: theaters
+2025-12-16 18:59:19,356 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/showings [status:200 duration:0.001s]
+2025-12-16 18:59:19,356 - core.elasticsearch_client - INFO - Elasticsearch index already exists: showings
+2025-12-16 18:59:19,357 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:200 duration:0.001s]
+2025-12-16 18:59:19,357 - core.elasticsearch_client - INFO - Elasticsearch index already exists: bookings
+2025-12-16 18:59:19,357 - main - INFO - Elasticsearch indices setup complete
+2025-12-16 19:00:46,818 - main - INFO - Shutting down application...
+2025-12-16 19:00:46,818 - main - INFO - Closing database connections...
+2025-12-16 19:00:46,820 - main - INFO - Closing Elasticsearch client...
+2025-12-16 19:00:46,821 - core.elasticsearch_client - INFO - Elasticsearch client connection closed
+2025-12-16 19:00:46,821 - main - INFO - Application shutdown complete
+2025-12-16 19:01:16,503 - main - INFO - Starting up application...
+2025-12-16 19:01:16,504 - main - INFO - Creating database tables...
+2025-12-16 19:01:16,527 - main - INFO - Database tables created successfully
+2025-12-16 19:01:16,527 - main - INFO - Initializing Elasticsearch client...
+2025-12-16 19:01:16,562 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/ [status:200 duration:0.035s]
+2025-12-16 19:01:16,563 - core.elasticsearch_client - INFO - Successfully connected to Elasticsearch at http://elasticsearch:9200
+2025-12-16 19:01:16,563 - main - INFO - Elasticsearch client initialized successfully
+2025-12-16 19:01:16,563 - main - INFO - Setting up Elasticsearch indices...
+2025-12-16 19:01:16,567 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/movies [status:200 duration:0.004s]
+2025-12-16 19:01:16,568 - core.elasticsearch_client - INFO - Elasticsearch index already exists: movies
+2025-12-16 19:01:16,569 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/theaters [status:200 duration:0.001s]
+2025-12-16 19:01:16,569 - core.elasticsearch_client - INFO - Elasticsearch index already exists: theaters
+2025-12-16 19:01:16,571 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/showings [status:200 duration:0.001s]
+2025-12-16 19:01:16,571 - core.elasticsearch_client - INFO - Elasticsearch index already exists: showings
+2025-12-16 19:01:16,572 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:200 duration:0.001s]
+2025-12-16 19:01:16,572 - core.elasticsearch_client - INFO - Elasticsearch index already exists: bookings
+2025-12-16 19:01:16,572 - main - INFO - Elasticsearch indices setup complete
+2025-12-16 19:04:44,917 - main - INFO - Shutting down application...
+2025-12-16 19:04:44,922 - main - INFO - Closing database connections...
+2025-12-16 19:04:44,928 - main - INFO - Closing Elasticsearch client...
+2025-12-16 19:04:44,929 - core.elasticsearch_client - INFO - Elasticsearch client connection closed
+2025-12-16 19:04:44,931 - main - INFO - Application shutdown complete
+2025-12-16 19:05:26,359 - main - INFO - Starting up application...
+2025-12-16 19:05:26,360 - main - INFO - Creating database tables...
+2025-12-16 19:05:26,428 - main - INFO - Database tables created successfully
+2025-12-16 19:05:26,428 - main - INFO - Initializing Elasticsearch client...
+2025-12-16 19:05:26,485 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/ [status:200 duration:0.056s]
+2025-12-16 19:05:26,485 - core.elasticsearch_client - INFO - Successfully connected to Elasticsearch at http://elasticsearch:9200
+2025-12-16 19:05:26,486 - main - INFO - Elasticsearch client initialized successfully
+2025-12-16 19:05:26,486 - main - INFO - Setting up Elasticsearch indices...
+2025-12-16 19:05:26,494 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/movies [status:200 duration:0.008s]
+2025-12-16 19:05:26,494 - core.elasticsearch_client - INFO - Elasticsearch index already exists: movies
+2025-12-16 19:05:26,496 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/theaters [status:200 duration:0.002s]
+2025-12-16 19:05:26,496 - core.elasticsearch_client - INFO - Elasticsearch index already exists: theaters
+2025-12-16 19:05:26,497 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/showings [status:200 duration:0.001s]
+2025-12-16 19:05:26,498 - core.elasticsearch_client - INFO - Elasticsearch index already exists: showings
+2025-12-16 19:05:26,499 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:200 duration:0.001s]
+2025-12-16 19:05:26,499 - core.elasticsearch_client - INFO - Elasticsearch index already exists: bookings
+2025-12-16 19:05:26,500 - main - INFO - Elasticsearch indices setup complete
