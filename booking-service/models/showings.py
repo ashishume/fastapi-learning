@@ -28,7 +28,7 @@ class Showing(Base):
     bookings = relationship("Booking", back_populates="showing",cascade="all, delete-orphan")
     booking_seats = relationship("BookingSeat", back_populates="showing",cascade="all, delete-orphan")
     # seats = relationship("Seat", back_populates="showing", primaryjoin="Showing.id == Seat.showing_id", cascade="all, delete-orphan")
-
+    locked_seats = relationship("LockedSeat", back_populates="showing",cascade="all, delete-orphan")
     # Production-ready indexes
     __table_args__ = (
         Index("ix_showings_movie_id", "movie_id"),  # Foreign key, frequently queried

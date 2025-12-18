@@ -9,6 +9,7 @@ from models.booking_seats import BookingSeat
 import datetime
 from models.movies import Movie
 from models.theaters import Theater
+from models.locked_seats import LockedSeat
 
 class BookingRepository:
     def __init__(self, db: Session):
@@ -37,12 +38,27 @@ class BookingRepository:
             )
         ).scalars().all()
 
+    def get_if_seat_is_locked(self, seats_ids: List[UUID], showing_id: UUID) -> List[UUID]:
+        return self.db.execute(
+            select(LockedSeat.seat_id)
+            .where(
+                LockedSeat.seat_id.in_(seats_ids),
+                LockedSeat.showing_id == showing_id
+            )
+        ).scalars().all()
+
     def create_booking_seats(self, booking_seats: List[BookingSeat]) -> List[BookingSeat]:
         self.db.add_all(booking_seats)
         self.db.commit()
         for booking_seat in booking_seats:
             self.db.refresh(booking_seat)
         return booking_seats
+
+    def create_locked_seat(self, locked_seat: LockedSeat) -> LockedSeat:
+        self.db.add(locked_seat)
+        self.db.commit()
+        self.db.refresh(locked_seat)
+        return locked_seat
 
     def get_all_bookings(self, user_id: UUID) -> List[Booking]:
         return self.db.execute(

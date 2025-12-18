@@ -8,7 +8,9 @@ from models.booking_seats import BookingSeat
 from schemas.bookings import BookingCreate, BookingResponse
 from repository.booking_repo import BookingRepository
 import uuid
-
+import datetime
+from models.locked_seats import LockedSeat
+from schemas.locked_seats import BookingLockCreate, BookingLockResponse
 
 class BookingService:
     def __init__(self, db: Session):
@@ -26,12 +28,14 @@ class BookingService:
 
         # Check if any seats are already booked
         existing_bookings = self.repository.get_if_seats_are_already_booked(booking_data)
+        check_if_seat_is_locked = self.repository.get_if_seat_is_locked(booking_data.seats_ids, booking_data.showing_id)
         
-        if existing_bookings:
+        if existing_bookings or check_if_seat_is_locked:
             booked_seat_ids = list(existing_bookings)
+            locked_seat_ids = list(check_if_seat_is_locked)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Seats already booked: {booked_seat_ids}"
+                detail=f"Seats already booked: {booked_seat_ids} or Seats already locked: {locked_seat_ids}"
             )
         
         # Create the booking
@@ -62,6 +66,16 @@ class BookingService:
         self.db.refresh(new_booking)
 
         return BookingResponse.model_validate(new_booking)
+
+
+    def create_booking_lock(self,booking_data:BookingLockCreate) -> BookingLockResponse:
+        for seat_id in booking_data.seats_ids:
+            locked_seat = LockedSeat(
+                showing_id=booking_data.showing_id,
+                seat_id=seat_id,
+            )
+            self.repository.create_locked_seat(locked_seat)
+            return BookingLockResponse.model_validate(locked_seat)
 
     def get_all_bookings(self,user_id: UUID) -> List[BookingResponse]:
      try:   
