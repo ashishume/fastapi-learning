@@ -38,12 +38,31 @@ const Seats = () => {
       });
 
       setSeats(result);
+
+      // Populate selectedSeats with seats locked by the current user
+      const userLockedSeatIds = bookingSeats.locked_seats
+        .filter((lockedSeat) => lockedSeat.user_id === user?.id)
+        .map((lockedSeat) => lockedSeat.seat_id);
+
+      const userLockedSeats = seats.filter((seat: Seat) =>
+        userLockedSeatIds.includes(seat.id)
+      );
+      setSelectedSeats(userLockedSeats);
     }
     load();
-  }, [theater_id]);
+  }, [theater_id, user?.id]);
 
   const handleSeatClick = async (seat: Seat) => {
-    if (selectedSeats.some((s) => s.seat_number === seat.seat_number)) {
+    const isUserLocked = lockedSeats.some(
+      (lockedSeat) =>
+        lockedSeat.seat_id === seat.id && lockedSeat.user_id === user?.id
+    );
+    const isSelected = selectedSeats.some(
+      (s) => s.seat_number === seat.seat_number
+    );
+
+    // If seat is locked by user or selected, unlock it
+    if (isSelected || isUserLocked) {
       setSelectedSeats(
         selectedSeats.filter((s) => s.seat_number !== seat.seat_number)
       );
@@ -57,6 +76,7 @@ const Seats = () => {
       setBookedSeats(bookingSeats.booked_seats);
       setLockedSeats(bookingSeats.locked_seats);
     } else {
+      // Lock the seat
       await createBookingLock({
         showing_id: showing_id || "",
         seat_id: seat.id,
@@ -74,7 +94,7 @@ const Seats = () => {
     const bookingStatus = await createBooking({
       showing_id: showing_id || "",
       seats_ids: selectedSeats.map((seat) => seat.id),
-      total_price: selectedSeats.reduce((acc, seat) => acc + SEAT_PRICE, 0),
+      total_price: selectedSeats.reduce((acc, _) => acc + SEAT_PRICE, 0),
     });
 
     if (bookingStatus.status === "confirmed") {
