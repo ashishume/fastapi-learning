@@ -17,7 +17,7 @@ class BookingService:
         self.db = db
         self.repository = BookingRepository(db)
 
-    def create_booking(self, booking_data: BookingCreate, user_id: UUID) -> BookingResponse:
+    async def create_booking(self, booking_data: BookingCreate, user_id: UUID) -> BookingResponse:
         # Validate showing exists and is not expired
         showing = self.repository.get_if_showing_exists(booking_data)
         if showing is None:
@@ -28,7 +28,7 @@ class BookingService:
 
         # Check if any seats are already booked
         existing_bookings = self.repository.get_if_seats_are_already_booked(booking_data)
-        check_if_seat_is_locked = self.repository.get_if_seat_is_locked(booking_data.seats_ids, booking_data.showing_id)
+        check_if_seat_is_locked = await self.repository.get_if_seat_is_locked(booking_data.showing_id)
         
         if existing_bookings or check_if_seat_is_locked:
             booked_seat_ids = list(existing_bookings)

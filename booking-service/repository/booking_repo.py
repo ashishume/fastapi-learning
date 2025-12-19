@@ -1,4 +1,5 @@
 from typing import List
+from fastapi import HTTPException, status
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
@@ -10,6 +11,7 @@ import datetime
 from models.movies import Movie
 from models.theaters import Theater
 from models.locked_seats import LockedSeat
+from core.redis_client import get_redis
 
 class BookingRepository:
     def __init__(self, db: Session):
@@ -38,14 +40,13 @@ class BookingRepository:
             )
         ).scalars().all()
 
-    def get_if_seat_is_locked(self, seats_ids: List[UUID], showing_id: UUID) -> List[UUID]:
-        return self.db.execute(
-            select(LockedSeat.seat_id)
-            .where(
-                LockedSeat.seat_id.in_(seats_ids),
-                LockedSeat.showing_id == showing_id
-            )
-        ).scalars().all()
+    async def get_if_seat_is_locked(self, showing_id: UUID) -> bool:
+        redis_client = await get_redis()
+        if redis_client is None:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="Redis connection failed")
+        locked_seats = await redis_client.keys(f"locked_seat:{showing_id}:*")
+        locked_seats = [UUID(ls.split(":")[2]) for ls in locked_seats]
+        return locked_seats
 
     def create_booking_seats(self, booking_seats: List[BookingSeat]) -> List[BookingSeat]:
         self.db.add_all(booking_seats)

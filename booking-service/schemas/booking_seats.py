@@ -33,12 +33,12 @@ class BookingSeatBrief(BaseModel):
 
 class LockedSeatResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: UUID
+    # id: UUID
     seat_id: UUID
     showing_id: UUID
-    expires_at: datetime.datetime
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    # expires_at: datetime.datetime
+    # created_at: datetime.datetime
+    # updated_at: datetime.datetime
 
 class ShowingSeatsResponse(BaseModel):
     booked_seats: list[BookingSeatResponse]

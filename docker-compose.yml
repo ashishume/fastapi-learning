@@ -273,22 +273,22 @@ services:
   #   networks:
   #     - microservices-network
   # Client (React Frontend)
-  # client:
-  #   build:
-  #     context: ./client
-  #     dockerfile: Dockerfile
-  #   container_name: client
-  #   ports:
-  #     - "5173:5173"
-  #   environment:
-  #     - VITE_AUTH_SERVICE_URL=http://localhost:8000
-  #     - VITE_BOOKING_SERVICE_URL=http://localhost:8003
-  #   volumes:
-  #     - ./client:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - microservices-network
-  #   restart: unless-stopped
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_AUTH_SERVICE_URL=http://localhost:8000
+      - VITE_BOOKING_SERVICE_URL=http://localhost:8003
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - microservices-network
+    restart: unless-stopped
 
   # Redis Cache
   redis:
@@ -324,7 +324,7 @@ services:
       # - product-service
       # - inventory-service
       # - food-service
-      # - client
+      - client
     networks:
       - microservices-network
     restart: unless-stopped

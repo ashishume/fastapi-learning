@@ -15,10 +15,10 @@ router = APIRouter()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, summary="Create a new booking", response_model=BookingResponse)
-def create_booking(booking: BookingCreate, request: Request, db: Session = Depends(get_db)) -> BookingResponse:
+async def create_booking(booking: BookingCreate, request: Request, db: Session = Depends(get_db)) -> BookingResponse:
     try:
         booking_service = BookingService(db)
-        return booking_service.create_booking(booking, request.state.user_id)
+        return await booking_service.create_booking(booking, request.state.user_id)
     except HTTPException:
         raise
     except Exception as e:
