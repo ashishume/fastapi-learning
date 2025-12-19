@@ -117,7 +117,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function refreshIPOData() {
   try {
     const response = await fetch(
-      "http://localhost:8003/scrap/upcoming_ipos?use_gemini=true&clean_html=true"
+      "http://localhost/booking/scrap/upcoming_ipos?use_gemini=true&clean_html=true"
     );
 
     // Check if response is ok

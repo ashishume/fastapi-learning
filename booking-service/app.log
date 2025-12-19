@@ -11818,3 +11818,6 @@
 2025-12-19 09:47:08,441 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:200 duration:0.002s]
 2025-12-19 09:47:08,441 - core.elasticsearch_client - INFO - Elasticsearch index already exists: bookings
 2025-12-19 09:47:08,442 - main - INFO - Elasticsearch indices setup complete
+2025-12-19 18:08:26,316 - core.gemini_service - INFO - Initialized Gemini model: gemini-2.5-flash
+2025-12-19 18:09:04,190 - core.gemini_service - WARNING - Failed to parse JSON from Gemini response: Expecting value: line 433 column 29 (char 18952)
+2025-12-19 18:09:16,292 - core.gemini_service - INFO - Initialized Gemini model: gemini-2.5-flash
