@@ -1,7 +1,12 @@
-import { createBooking, getBookingSeats, getSeats } from "../api";
+import {
+  createBooking,
+  createBookingLock,
+  getBookingSeats,
+  getSeats,
+} from "../api";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { BookingSeat, Seat } from "../api/models";
+import type { BookingSeat, LockedSeat, Seat } from "../api/models";
 import { useToast } from "../context/ToastContext";
 
 const Seats = () => {
@@ -11,11 +16,14 @@ const Seats = () => {
   const SEAT_PRICE = 100;
   const [seats, setSeats] = useState<Seat[]>([]);
   const [bookedSeats, setBookedSeats] = useState<BookingSeat[]>([]);
+  const [lockedSeats, setLockedSeats] = useState<LockedSeat[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   useEffect(() => {
     async function load() {
       const bookingSeats = await getBookingSeats(showing_id || "");
-      setBookedSeats(bookingSeats);
+      setBookedSeats(bookingSeats.booked_seats);
+      setLockedSeats(bookingSeats.locked_seats);
+
       const seats = await getSeats(theater_id || "");
       let result: any = {};
       seats.forEach((seat: Seat) => {
@@ -32,20 +40,31 @@ const Seats = () => {
     load();
   }, [theater_id]);
 
-  const seatTypes = {
-    REGULAR: "regular",
-    PREMIUM: "premium",
-    VIP: "vip",
-    RECLINER: "recliner",
-  };
-
-  const handleSeatClick = (seat: Seat) => {
+  const handleSeatClick = async (seat: Seat) => {
     if (selectedSeats.some((s) => s.seat_number === seat.seat_number)) {
       setSelectedSeats(
         selectedSeats.filter((s) => s.seat_number !== seat.seat_number)
       );
+      await createBookingLock({
+        showing_id: showing_id || "",
+        seat_id: seat.id,
+        lock_seat: false,
+      });
+      // Refresh booked seats to remove the unlocked seat
+      const bookingSeats = await getBookingSeats(showing_id || "");
+      setBookedSeats(bookingSeats.booked_seats);
+      setLockedSeats(bookingSeats.locked_seats);
     } else {
+      await createBookingLock({
+        showing_id: showing_id || "",
+        seat_id: seat.id,
+        lock_seat: true,
+      });
       setSelectedSeats([...selectedSeats, seat]);
+      // Refresh booked seats to include the newly locked seat
+      const bookingSeats = await getBookingSeats(showing_id || "");
+      setBookedSeats(bookingSeats.booked_seats);
+      setLockedSeats(bookingSeats.locked_seats);
     }
   };
 
@@ -62,7 +81,8 @@ const Seats = () => {
       setSelectedSeats([]);
 
       const bookingSeats = await getBookingSeats(showing_id || "");
-      setBookedSeats(bookingSeats);
+      await setBookedSeats(bookingSeats.booked_seats);
+      await setLockedSeats(bookingSeats.locked_seats);
     } else {
       error(bookingStatus.message);
     }
@@ -73,28 +93,40 @@ const Seats = () => {
       <div className={`flex gap-4 w-full`}>
         {Object.keys(seats).map((row: any) => (
           <div key={row} className="flex flex-col gap-1">
-            {(seats[row] as any).map((seat: Seat) => (
-              <div key={`${seat.seat_number}`}>
-                <div
-                  onClick={() => handleSeatClick(seat)}
-                  key={`${seat.seat_number}`}
-                  className={`w-12 h-12 bg-gray-200 cursor-pointer rounded-xl flex items-center justify-center gap-2 m-1 
-                    ${
-                      selectedSeats.some(
-                        (s) => s.seat_number === seat.seat_number
-                      )
-                        ? "bg-blue-500! text-white"
-                        : ""
-                    }  ${
-                    bookedSeats.some((s) => s.seat_id === seat.id)
-                      ? "bg-red-200! text-gray-500 disabled:cursor-not-allowed"
-                      : ""
-                  }`}
-                >
-                  {`${seat.seat_number}`}
+            {(seats[row] as any).map((seat: Seat) => {
+              const isSelected = selectedSeats.some(
+                (s) => s.seat_number === seat.seat_number
+              );
+              const isBooked = bookedSeats.some(
+                (bookedSeat) => bookedSeat.seat_id === seat.id
+              );
+
+              const isLocked = lockedSeats.some(
+                (lockedSeat) => lockedSeat.seat_id === seat.id
+              );
+
+              console.log(isLocked);
+              return (
+                <div key={`${seat.seat_number}`}>
+                  <div
+                    onClick={() => handleSeatClick(seat)}
+                    key={`${seat.seat_number}`}
+                    className={`w-12 h-12 bg-gray-200 cursor-pointer rounded-xl flex items-center justify-center gap-2 m-1 
+                      ${
+                        isSelected
+                          ? "!bg-blue-500 text-white"
+                          : isBooked
+                          ? "!bg-red-200 text-gray-500 disabled:cursor-not-allowed pointer-events-none"
+                          : isLocked
+                          ? "!bg-yellow-200 text-gray-500"
+                          : ""
+                      }`}
+                  >
+                    {`${seat.seat_number}`}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ))}
       </div>

@@ -103,3 +103,8 @@ export interface BookingSeat {
   updated_at: string;
   seat: Seat;
 }
+
+export interface LockedSeat {
+  seat_id: string;
+  showing_id: string;
+}

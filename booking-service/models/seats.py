@@ -35,7 +35,6 @@ class Seat(Base):
     booking_seats = relationship("BookingSeat", back_populates="seat",cascade="all, delete-orphan")
     # showing = relationship("Showing", back_populates="seats", primaryjoin="Seat.showing_id == Showing.id")
     theater = relationship("Theater", back_populates="seats")
-    locked_seats = relationship("LockedSeat", back_populates="seat",cascade="all, delete-orphan")
     
 
     # Production-ready indexes and constraints

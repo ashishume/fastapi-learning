@@ -9,8 +9,6 @@ from schemas.bookings import BookingCreate, BookingResponse
 from repository.booking_repo import BookingRepository
 import uuid
 import datetime
-from models.locked_seats import LockedSeat
-from schemas.locked_seats import BookingLockCreate, BookingLockResponse
 
 class BookingService:
     def __init__(self, db: Session):
@@ -67,15 +65,6 @@ class BookingService:
 
         return BookingResponse.model_validate(new_booking)
 
-
-    def create_booking_lock(self,booking_data:BookingLockCreate) -> BookingLockResponse:
-        for seat_id in booking_data.seats_ids:
-            locked_seat = LockedSeat(
-                showing_id=booking_data.showing_id,
-                seat_id=seat_id,
-            )
-            self.repository.create_locked_seat(locked_seat)
-            return BookingLockResponse.model_validate(locked_seat)
 
     def get_all_bookings(self,user_id: UUID) -> List[BookingResponse]:
      try:   

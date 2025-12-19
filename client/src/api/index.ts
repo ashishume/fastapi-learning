@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { BookingSeat, LockedSeat } from "./models";
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL;
 const BOOKING_BASE_URL = import.meta.env.VITE_BOOKING_API_URL;
 const FOOD_BASE_URL = import.meta.env.VITE_FOOD_API_URL;
@@ -67,7 +68,12 @@ const getSeats = async (theater_id: string) => {
   return response.data;
 };
 
-const getBookingSeats = async (showing_id: string) => {
+const getBookingSeats = async (
+  showing_id: string
+): Promise<{
+  booked_seats: BookingSeat[];
+  locked_seats: LockedSeat[];
+}> => {
   const response = await bookingApi.get(`/booking_seats/${showing_id}`);
   return response.data;
 };
@@ -77,6 +83,15 @@ const createBooking = async (booking: {
   total_price: number;
 }) => {
   const response = await bookingApi.post(`/bookings`, booking);
+  return response.data;
+};
+
+const createBookingLock = async (booking_lock: {
+  showing_id: string;
+  seat_id: string;
+  lock_seat: boolean;
+}) => {
+  const response = await bookingApi.post(`/booking_seats/lock`, booking_lock);
   return response.data;
 };
 
@@ -116,6 +131,7 @@ export {
   signup,
   getMovies,
   getMovieById,
+  createBookingLock,
   getTheaters,
   getSeats,
   getShowings,

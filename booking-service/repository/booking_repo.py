@@ -10,7 +10,6 @@ from models.booking_seats import BookingSeat
 import datetime
 from models.movies import Movie
 from models.theaters import Theater
-from models.locked_seats import LockedSeat
 from core.redis_client import get_redis
 
 class BookingRepository:
@@ -54,12 +53,6 @@ class BookingRepository:
         for booking_seat in booking_seats:
             self.db.refresh(booking_seat)
         return booking_seats
-
-    def create_locked_seat(self, locked_seat: LockedSeat) -> LockedSeat:
-        self.db.add(locked_seat)
-        self.db.commit()
-        self.db.refresh(locked_seat)
-        return locked_seat
 
     def get_all_bookings(self, user_id: UUID) -> List[Booking]:
         return self.db.execute(
