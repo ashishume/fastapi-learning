@@ -115,24 +115,36 @@ const Seats = () => {
                   lockedSeat.user_id !== user?.id
               );
 
-              // NOTE: locking should be based on user id and showing id
+              /**
+               * booked : no user interaction
+               * selected : user can click to select/unselect
+               * user locked : user can click to unlock/lock<--> interaction enabled
+               * other user locked : no user interaction
+               */
+
+              const getClassNames = () => {
+                if (isBooked) {
+                  return "!bg-red-200 text-gray-500 disabled:cursor-not-allowed pointer-events-none";
+                }
+                if (isSelected) {
+                  return "!bg-blue-200 text-white";
+                }
+                if (isUserLocked) {
+                  return "!bg-blue-200 text-white";
+                }
+                if (isOtherUserLocked) {
+                  return "!bg-gray-500 text-white pointer-events-none";
+                }
+                return;
+              };
+
               return (
                 <div key={`${seat.seat_number}`}>
                   <div
                     onClick={() => handleSeatClick(seat)}
                     key={`${seat.seat_number}`}
                     className={`w-12 h-12 bg-gray-200 cursor-pointer rounded-xl flex items-center justify-center gap-2 m-1 
-                      ${
-                        isSelected
-                          ? "!bg-blue-500 text-white"
-                          : isBooked
-                          ? "!bg-red-200 text-gray-500 disabled:cursor-not-allowed pointer-events-none"
-                          : isUserLocked
-                          ? "!bg-yellow-200 text-gray-500"
-                          : isOtherUserLocked
-                          ? "!bg-gray-500 text-white pointer-events-none"
-                          : ""
-                      }`}
+                      ${getClassNames()}`}
                   >
                     {`${seat.seat_number}`}
                   </div>
