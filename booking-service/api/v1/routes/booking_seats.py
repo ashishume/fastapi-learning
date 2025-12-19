@@ -7,6 +7,7 @@ from models.booking_seats import BookingSeat
 from models.locked_seats import LockedSeat
 from schemas.booking_seats import BookingSeatCreate, BookingSeatResponse, LockedSeatResponse, ShowingSeatsResponse
 from schemas.locked_seats import BookingLockCreate
+import datetime
 router=APIRouter()
 
 
@@ -33,7 +34,7 @@ def get_all_booking_seats(showing_id:str,db: Session = Depends(get_db)) -> Showi
 
     locked_seats = db.execute(
         select(LockedSeat)
-        .where(LockedSeat.showing_id==showing_id)
+        .where(LockedSeat.showing_id==showing_id,LockedSeat.expires_at>datetime.datetime.utcnow())
     ).scalars().all()
 
     return ShowingSeatsResponse(
