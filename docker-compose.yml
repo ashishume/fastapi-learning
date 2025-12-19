@@ -205,11 +205,14 @@ services:
       POSTGRES_PORT: 5432
       PRODUCT_SERVICE_URL: http://product-service:8001
       AUTH_SERVICE_URL: http://auth-service:8000
+      REDIS_URL: redis://redis:6379
       TOKEN_SECRET: dev-secret-key-change-in-production
       ELASTICSEARCH_HOST: elasticsearch
       ELASTICSEARCH_PORT: 9200
       ELASTICSEARCH_URL: http://elasticsearch:9200
     depends_on:
+      redis:
+        condition: service_healthy
       booking-db:
         condition: service_healthy
       elasticsearch:

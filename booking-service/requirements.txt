@@ -26,6 +26,10 @@ python-dotenv==1.0.0
 google-generativeai==0.3.2
 
 
+# Caching
+redis[async]==5.1.1
+
+
 annotated-doc==0.0.3
 annotated-types==0.7.0
 anyio==4.11.0

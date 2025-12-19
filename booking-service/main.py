@@ -13,6 +13,7 @@ from core.utils import auth_guard
 from core.elasticsearch_client import get_elasticsearch_client, close_elasticsearch_client, create_index_if_not_exists
 from core.elasticsearch_indices import ELASTICSEARCH_INDICES, get_all_index_names
 from api.v1.routes import upcoming_ipo_scrap
+from core.redis_client import connect_redis, close_redis
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +36,9 @@ async def lifespan(app: FastAPI):
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
+    
+    # Connect to Redis for caching and rate limiting
+    await connect_redis()
     
     # Initialize Elasticsearch client
     logger.info("Initializing Elasticsearch client...")
@@ -60,6 +64,8 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down application...")
     logger.info("Closing database connections...")
     engine.dispose()
+    logger.info("Closing Redis connection...")
+    await close_redis()
     logger.info("Closing Elasticsearch client...")
     close_elasticsearch_client()
     logger.info("Application shutdown complete")
