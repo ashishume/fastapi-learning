@@ -8,10 +8,12 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { BookingSeat, LockedSeat, Seat } from "../api/models";
 import { useToast } from "../context/ToastContext";
+import { useAuth } from "../context/AuthContext";
 
 const Seats = () => {
   const { theater_id, showing_id } = useParams();
   const { success, error } = useToast();
+  const { user } = useAuth();
 
   const SEAT_PRICE = 100;
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -101,11 +103,19 @@ const Seats = () => {
                 (bookedSeat) => bookedSeat.seat_id === seat.id
               );
 
-              const isLocked = lockedSeats.some(
-                (lockedSeat) => lockedSeat.seat_id === seat.id
+              const isUserLocked = lockedSeats.some(
+                (lockedSeat) =>
+                  lockedSeat.seat_id === seat.id &&
+                  lockedSeat.user_id === user?.id
               );
 
-              console.log(isLocked);
+              const isOtherUserLocked = lockedSeats.some(
+                (lockedSeat) =>
+                  lockedSeat.seat_id === seat.id &&
+                  lockedSeat.user_id !== user?.id
+              );
+
+              // NOTE: locking should be based on user id and showing id
               return (
                 <div key={`${seat.seat_number}`}>
                   <div
@@ -117,8 +127,10 @@ const Seats = () => {
                           ? "!bg-blue-500 text-white"
                           : isBooked
                           ? "!bg-red-200 text-gray-500 disabled:cursor-not-allowed pointer-events-none"
-                          : isLocked
+                          : isUserLocked
                           ? "!bg-yellow-200 text-gray-500"
+                          : isOtherUserLocked
+                          ? "!bg-gray-500 text-white pointer-events-none"
                           : ""
                       }`}
                   >

@@ -9,6 +9,8 @@ import { authApi } from "../api";
 
 interface User {
   email: string;
+  id?: string;
+  name?: string;
 }
 
 interface AuthContextType {
@@ -16,7 +18,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   setUser: (user: User | null) => void;
-  login: (email: string) => void;
+  login: (email: string, id: string, name: string) => void;
   logout: () => Promise<void>;
 }
 
@@ -32,7 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await authApi.get("/auth/user_details", {
           withCredentials: true,
         });
-        setUser(response.data);
+        setUser({
+          email: response.data.email,
+          id: response.data.id,
+          name: response.data.name,
+        });
       } catch (error) {
         // User is not authenticated
         setUser(null);
@@ -42,9 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  const login = (email: string) => {
+  const login = (email: string, id: string, name: string) => {
     // Set user after successful login
-    setUser({ email });
+    setUser({ email, id, name });
   };
 
   const logout = async () => {

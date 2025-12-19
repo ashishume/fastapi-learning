@@ -86,6 +86,11 @@ const createBooking = async (booking: {
   return response.data;
 };
 
+const getUserDetails = async () => {
+  const response = await authApi.get(`/auth/user_details`);
+  return response.data;
+};
+
 const createBookingLock = async (booking_lock: {
   showing_id: string;
   seat_id: string;
@@ -139,4 +144,5 @@ export {
   getBookingSeats,
   createWebSocket,
   sendMessage,
+  getUserDetails,
 };

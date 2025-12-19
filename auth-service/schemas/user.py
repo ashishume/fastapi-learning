@@ -33,9 +33,12 @@ class ResponseModel(BaseModel):
 
 class UserDetailResponse(BaseModel):
     model_config = {"from_attributes": True}
+    id: UUID = Field(..., description="The id of the user")
     email: str = Field(..., description="The email of the user")
     name: str = Field(..., description="The name of the user")
 
 class LoginResponse(BaseModel):
     message: str = Field(..., description="The message of the login")
     email: str = Field(..., description="The email of the user")
+    id: UUID = Field(..., description="The id of the user")
+    name: str = Field(..., description="The name of the user")

@@ -25,10 +25,10 @@ export default function Login() {
 
     try {
       // Call login API - backend will set httpOnly cookie
-      await loginApi(email, password);
+      const response = await loginApi(email, password);
 
       // Update auth context with user email
-      login(email);
+      login(email, response.id, response.name);
 
       // Redirect to home page
       navigate("/");
