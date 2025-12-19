@@ -107,4 +107,5 @@ export interface BookingSeat {
 export interface LockedSeat {
   seat_id: string;
   showing_id: string;
+  user_id: string;
 }

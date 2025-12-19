@@ -12,5 +12,6 @@ class BookingLockResponse(BaseModel):
     # id: UUID
     seat_id: UUID
     showing_id: UUID
+    user_id: UUID
     # created_at: datetime.datetime
     # updated_at: datetime.datetime
