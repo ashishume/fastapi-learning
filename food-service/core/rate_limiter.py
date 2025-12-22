@@ -64,6 +64,57 @@ class RateLimiter:
             return self.max_requests
 
 
+async def add_rate_limit_headers(request, call_next):
+    """
+    Middleware to add rate limit headers to all responses.
+    
+    This adds X-RateLimit-* headers to inform clients about rate limit status.
+    Note: This doesn't enforce rate limiting, it just adds informational headers.
+    For actual rate limiting, use the RateLimiter class in route handlers.
+    """
+    from core.rate_limit_config import RateLimitConfig
+    from core.redis_client import get_redis_client
+    
+    response = await call_next(request)
+    
+    # Only add headers if rate limiting is enabled
+    if not RateLimitConfig.ENABLED:
+        return response
+    
+    try:
+        # Try to get Redis client to calculate remaining requests
+        redis_client = get_redis_client()
+        
+        # Get client IP for rate limit key
+        client_ip = request.client.host if request.client else "unknown"
+        rate_limit_key = f"rate_limit:global:{client_ip}"
+        
+        # Calculate remaining requests
+        current_time = int(time.time())
+        window_start = current_time - RateLimitConfig.DEFAULT_WINDOW_SECONDS
+        
+        # Remove old entries
+        await redis_client.zremrangebyscore(rate_limit_key, 0, window_start)
+        
+        # Get current request count
+        request_count = await redis_client.zcard(rate_limit_key)
+        remaining = max(0, RateLimitConfig.DEFAULT_MAX_REQUESTS - request_count)
+        
+        # Add rate limit headers
+        response.headers["X-RateLimit-Limit"] = str(RateLimitConfig.DEFAULT_MAX_REQUESTS)
+        response.headers["X-RateLimit-Remaining"] = str(remaining)
+        response.headers["X-RateLimit-Window"] = str(RateLimitConfig.DEFAULT_WINDOW_SECONDS)
+        response.headers["X-RateLimit-Reset"] = str(current_time + RateLimitConfig.DEFAULT_WINDOW_SECONDS)
+        
+    except (RuntimeError, Exception) as e:
+        # If Redis is not available or there's an error, still add basic headers
+        logger.debug(f"Could not calculate rate limit headers: {e}")
+        response.headers["X-RateLimit-Limit"] = str(RateLimitConfig.DEFAULT_MAX_REQUESTS)
+        response.headers["X-RateLimit-Remaining"] = str(RateLimitConfig.DEFAULT_MAX_REQUESTS)
+    
+    return response
+
+
 
 
 

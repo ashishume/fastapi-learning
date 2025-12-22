@@ -45,103 +45,6 @@ services:
       - microservices-network
     restart: unless-stopped
 
-  # Product Service Database
-  # product-db:
-  #   image: postgres:16-alpine
-  #   container_name: product-db
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: admin
-  #     POSTGRES_DB: product_service
-  #   ports:
-  #     - "5433:5432"
-  #   volumes:
-  #     - product-db-data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   networks:
-  #     - microservices-network
-
-  # # Product Service
-  # product-service:
-  #   build:
-  #     context: ./product-service
-  #     dockerfile: Dockerfile
-  #   container_name: product-service
-  #   ports:
-  #     - "8001:8001"
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: admin
-  #     POSTGRES_DB: product_service
-  #     POSTGRES_HOST: product-db
-  #     POSTGRES_PORT: 5432
-  #     TOKEN_SECRET: dev-secret-key-change-in-production
-  #     INVENTORY_SERVICE_URL: http://inventory-service:8002
-  #     PRODUCT_SERVICE_URL: http://product-service:8001
-  #     ALGORITHM: HS256
-  #     ACCESS_TOKEN_EXPIRE_MINUTES: 30
-  #     REDIS_URL: redis://redis:6379
-  #   depends_on:
-  #     product-db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./product-service:/app
-  #   networks:
-  #     - microservices-network
-  #   restart: unless-stopped
-
-  # # Inventory Service Database
-  # inventory-db:
-  #   image: postgres:16-alpine
-  #   container_name: inventory-db
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: admin
-  #     POSTGRES_DB: inventory_service
-  #   ports:
-  #     - "5434:5432"
-  #   volumes:
-  #     - inventory-db-data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   networks:
-  #     - microservices-network
-
-  # # Inventory Service
-  # inventory-service:
-  #   build:
-  #     context: ./inventory-service
-  #     dockerfile: Dockerfile
-  #   container_name: inventory-service
-  #   ports:
-  #     - "8002:8002"
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: admin
-  #     POSTGRES_DB: inventory_service
-  #     POSTGRES_HOST: inventory-db
-  #     POSTGRES_PORT: 5432
-  #     PRODUCT_SERVICE_URL: http://product-service:8001
-  #     AUTH_SERVICE_URL: http://auth-service:8000
-  #     TOKEN_SECRET: dev-secret-key-change-in-production
-  #   depends_on:
-  #     inventory-db:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./inventory-service:/app
-  #   networks:
-  #     - microservices-network
-  #   restart: unless-stopped
-
   # Elasticsearch Service
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -203,7 +106,6 @@ services:
       POSTGRES_DB: booking_service
       POSTGRES_HOST: booking-db
       POSTGRES_PORT: 5432
-      PRODUCT_SERVICE_URL: http://product-service:8001
       AUTH_SERVICE_URL: http://auth-service:8000
       REDIS_URL: redis://redis:6379
       TOKEN_SECRET: dev-secret-key-change-in-production
@@ -225,35 +127,7 @@ services:
       - microservices-network
     restart: unless-stopped
 
-  # Food Service
-  # food-service:
-  #   build:
-  #     context: ./food-service
-  #     dockerfile: Dockerfile
-  #   container_name: food-service
-  #   ports:
-  #     - "8004:8004"
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: admin
-  #     POSTGRES_DB: food_service
-  #     POSTGRES_HOST: food-db
-  #     POSTGRES_PORT: 5432
-  #     AUTH_SERVICE_URL: http://auth-service:8000
-  #     TOKEN_SECRET: dev-secret-key-change-in-production
-  #     REDIS_URL: redis://redis:6379
-  #   depends_on:
-  #     food-db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./food-service:/app
-  #   networks:
-  #     - microservices-network
-  #   restart: unless-stopped
-
-  # # Food Service Database
+  # Food Service Database
   # food-db:
   #   image: postgres:16-alpine
   #   container_name: food-db
@@ -272,6 +146,38 @@ services:
   #     retries: 5
   #   networks:
   #     - microservices-network
+
+  # Food Service
+  # food-service:
+  #   build:
+  #     context: ./food-service
+  #     dockerfile: Dockerfile
+  #   container_name: food-service
+  #   ports:
+  #     - "8004:8004"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: food_service
+  #     POSTGRES_HOST: food-db
+  #     POSTGRES_PORT: 5432
+  #     AUTH_SERVICE_URL: http://auth-service:8000
+  #     TOKEN_SECRET: dev-secret-key-change-in-production
+  #     REDIS_URL: redis://redis:6379
+  #     RATE_LIMIT_ENABLED: "true"
+  #     RATE_LIMIT_MAX_REQUESTS: "100"
+  #     RATE_LIMIT_WINDOW_SECONDS: "60"
+  #     ENABLE_SHARDING: "false"
+  #   depends_on:
+  #     food-db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./food-service:/app
+  #   networks:
+  #     - microservices-network
+  #   restart: unless-stopped
   # Client (React Frontend)
   client:
     build:
@@ -321,8 +227,6 @@ services:
       - auth-service
       - booking-service
       # Uncomment when services are enabled:
-      # - product-service
-      # - inventory-service
       # - food-service
       - client
     networks:
@@ -335,8 +239,6 @@ networks:
 
 volumes:
   auth-db-data:
-  # product-db-data:
-  # inventory-db-data:
   booking-db-data:
   redis-data:
   # food-db-data:

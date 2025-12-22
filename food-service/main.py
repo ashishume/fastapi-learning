@@ -17,6 +17,8 @@ from api.v1.routes import menu
 from api.v1.routes import web_server
 
 from core.redis_client import connect_redis, close_redis
+from core.rate_limiter import add_rate_limit_headers
+from core.rate_limit_config import RateLimitConfig
 
 # Import sharding module (optional - enable with ENABLE_SHARDING=true)
 ENABLE_SHARDING = os.getenv("ENABLE_SHARDING", "false").lower() == "true"
@@ -48,6 +50,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up application...")
 
     await connect_redis()
+    logger.info(f"Rate limiting enabled: {RateLimitConfig.ENABLED}")
     
     if ENABLE_SHARDING:
         # Sharded database setup
@@ -106,6 +109,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ===== Rate Limiting Middleware =====
+# Add rate limit headers to all responses
+# This middleware adds X-RateLimit-* headers to inform clients about their rate limit status
+app.middleware("http")(add_rate_limit_headers)
 
 
 # auth guard for all routes

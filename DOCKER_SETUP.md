@@ -9,13 +9,20 @@ This guide explains how to run all FastAPI microservices using Docker and Docker
 
 ## Services Overview
 
-The application consists of 3 microservices, each with its own PostgreSQL database:
+The application consists of multiple microservices, each with its own PostgreSQL database:
 
-| Service           | Port | Database Port | Description                        |
-| ----------------- | ---- | ------------- | ---------------------------------- |
-| auth-service      | 8000 | 5432          | Authentication and user management |
-| product-service   | 8001 | 5433          | Product and category management    |
-| inventory-service | 8002 | 5434          | Inventory management               |
+| Service         | Port | Database Port | Description                        |
+| --------------- | ---- | ------------- | ---------------------------------- |
+| auth-service    | 8000 | 5435          | Authentication and user management |
+| booking-service | 8003 | 5436          | Movie theater booking system       |
+| food-service    | 8004 | 5437          | Food ordering system (commented)   |
+| client          | 5173 | -             | React frontend (commented)         |
+
+**Infrastructure Services**:
+
+- Redis (Port 6379) - Caching and rate limiting
+- Elasticsearch (Port 9200) - Full-text search
+- Nginx (Port 80) - Reverse proxy
 
 ## Quick Start
 
@@ -52,8 +59,10 @@ View logs for a specific service:
 
 ```bash
 docker-compose logs -f auth-service
-docker-compose logs -f product-service
-docker-compose logs -f inventory-service
+docker-compose logs -f booking-service
+docker-compose logs -f food-service
+docker-compose logs -f redis
+docker-compose logs -f elasticsearch
 ```
 
 ### 4. Stop All Services
@@ -77,46 +86,59 @@ Once all services are running, you can access them at:
   - API Docs: http://localhost:8000/docs
   - ReDoc: http://localhost:8000/redoc
 
-- **Product Service**: http://localhost:8001
+- **Booking Service**: http://localhost:8003
 
-  - API Docs: http://localhost:8001/docs
-  - ReDoc: http://localhost:8001/redoc
+  - API Docs: http://localhost:8003/docs
+  - ReDoc: http://localhost:8003/redoc
 
-- **Inventory Service**: http://localhost:8002
-  - API Docs: http://localhost:8002/docs
-  - ReDoc: http://localhost:8002/redoc
+- **Food Service**: http://localhost:8004 (if enabled)
+
+  - API Docs: http://localhost:8004/docs
+  - ReDoc: http://localhost:8004/redoc
+
+- **Client (React Frontend)**: http://localhost:5173 (if enabled)
+
+- **Elasticsearch**: http://localhost:9200
+
+- **Nginx Reverse Proxy**: http://localhost:80
 
 ## Database Access
 
 You can connect to the PostgreSQL databases using these credentials:
 
-`docker exec -it product-db psql -U postgres -d product_service`
-
-`docker exec -it auth-db psql -U postgres -d auth_service`
-
-`docker exec -it inventory-db psql -U postgres -d inventory_service`
-
 ### Auth Service Database
 
+```bash
+docker exec -it auth-db psql -U postgres -d auth_service
+```
+
 - Host: localhost
-- Port: 5432
+- Port: 5435
 - Database: auth_service
 - User: postgres
 - Password: admin
 
-### Product Service Database
+### Booking Service Database
+
+```bash
+docker exec -it booking-db psql -U postgres -d booking_service
+```
 
 - Host: localhost
-- Port: 5433
-- Database: product_service
+- Port: 5436
+- Database: booking_service
 - User: postgres
 - Password: admin
 
-### Inventory Service Database
+### Food Service Database (if enabled)
+
+```bash
+docker exec -it food-db psql -U postgres -d food_service
+```
 
 - Host: localhost
-- Port: 5434
-- Database: inventory_service
+- Port: 5437
+- Database: food_service
 - User: postgres
 - Password: admin
 
@@ -153,7 +175,7 @@ docker-compose up -d
 Start specific services:
 
 ```bash
-docker-compose up -d auth-service product-service
+docker-compose up -d auth-service booking-service
 ```
 
 Stop all services:
@@ -196,10 +218,16 @@ Run Alembic migrations for auth-service:
 docker-compose exec auth-service alembic upgrade head
 ```
 
-Run Alembic migrations for product-service:
+Run Alembic migrations for booking-service:
 
 ```bash
-docker-compose exec product-service alembic upgrade head
+docker-compose exec booking-service alembic upgrade head
+```
+
+Run Alembic migrations for food-service (if enabled):
+
+```bash
+docker-compose exec food-service alembic upgrade head
 ```
 
 Create a new migration:
@@ -292,22 +320,29 @@ For production deployment, consider:
 Each service can be configured using environment variables. See the `env.example` files in each service directory:
 
 - `auth-service/env.example`
-- `product-service/env.example`
-- `inventory-service/env.example`
+- `booking-service/` (check service-specific configuration)
+- `food-service/` (check service-specific configuration)
 
 ## Network Configuration
 
 All services are connected to a custom bridge network called `microservices-network`. This allows services to communicate with each other using their service names as hostnames.
 
-Example: From product-service, you can reach auth-service at `http://auth-service:8000`
+Examples:
+
+- From booking-service, you can reach auth-service at `http://auth-service:8000`
+- From food-service, you can reach auth-service at `http://auth-service:8000`
+- From any service, you can reach Redis at `redis://redis:6379`
+- From booking-service, you can reach Elasticsearch at `http://elasticsearch:9200`
 
 ## Volume Management
 
-Persistent volumes are created for each database:
+Persistent volumes are created for each database and service:
 
 - `auth-db-data`: Auth service database data
-- `product-db-data`: Product service database data
-- `inventory-db-data`: Inventory service database data
+- `booking-db-data`: Booking service database data
+- `food-db-data`: Food service database data (if enabled)
+- `redis-data`: Redis cache data
+- `elasticsearch-data`: Elasticsearch index data
 
 To backup a database:
 
