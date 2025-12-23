@@ -1,4 +1,72 @@
 
+"""
+Movie Booking System Design
+
+Functional Requirements:
+
+1. User Management:
+   - System should support user registration with name and email
+   - Each user should have a unique user ID
+
+2. Movie & Theater Management:
+   - System should support multiple movies with unique movie IDs
+   - System should support multiple theaters with unique theater IDs, names, and locations
+   - System should support showings (movie screenings at specific theaters with start/end times)
+
+3. Seat Management:
+   - System should support different seat types: Regular, Premium, and Recliner
+   - Each seat should have a unique seat ID and seat name
+   - Seats should be associated with showings
+
+4. Seat Locking Mechanism:
+   - System should temporarily lock seats when a user initiates a booking (default: 5 minutes)
+   - Locked seats should prevent other users from booking them
+   - Locks should automatically expire after the configured duration
+   - Users should be able to lock seats they already have locked (re-lock)
+
+5. Booking Creation:
+   - Users should be able to create bookings for one or more seats for a showing
+   - System should check seat availability before creating a booking
+   - System should lock all requested seats atomically (all or nothing)
+   - If any seat cannot be locked, all seats should be unlocked and booking should fail
+   - System should calculate total price based on seat types using a payment strategy
+
+6. Price Calculation:
+   - Regular seats: ₹200
+   - Premium seats: ₹300
+   - Recliner seats: ₹600
+   - System should support extensible payment strategies for different pricing models
+
+7. Booking Confirmation:
+   - Users should be able to confirm their bookings (represents payment completion)
+   - Confirmed bookings should permanently lock the seats
+   - Only unconfirmed bookings can be confirmed
+   - Users can only confirm their own bookings
+
+8. Booking Cancellation:
+   - Users should be able to cancel unconfirmed bookings
+   - Cancellation should unlock all seats in the booking
+   - Confirmed bookings cannot be cancelled
+   - Users can only cancel their own bookings
+
+9. Concurrency & Thread Safety:
+   - System should handle concurrent booking requests safely
+   - Multiple users should not be able to book the same seat simultaneously
+   - System should use locking mechanisms to prevent race conditions
+
+10. Booking Retrieval:
+    - System should allow retrieval of bookings by booking ID
+
+Technical Requirements:
+- Python 3.7+ (for type hints support)
+- Standard library modules only (no external dependencies):
+  * enum - for SEAT_TYPE and RATES enumerations
+  * abc - for abstract base classes (PaymentStrategy)
+  * threading - for Lock and RLock synchronization primitives
+  * uuid - for generating unique IDs
+  * datetime - for timestamp and time-based operations
+"""
+
 from enum import Enum
 from abc import ABC, abstractmethod
 from threading import Lock, RLock
