@@ -102,6 +102,20 @@ class DriverService:
     def get_available_drivers(self):
         with self.lock:
             return [driver for driver in self.drivers.values() if driver.driver_status == DRIVER_STATUS.ONLINE]
+    
+    # def reserve_driver(self, driver_id: str) -> bool:
+    #     """
+    #     Atomically reserve a driver by setting status to BUSY.
+    #     Returns True if successful, False if driver is not available.
+    #     """
+    #     with self.lock:
+    #         if driver_id not in self.drivers:
+    #             return False
+    #         driver = self.drivers[driver_id]
+    #         if driver.driver_status != DRIVER_STATUS.ONLINE:
+    #             return False
+    #         driver.driver_status = DRIVER_STATUS.BUSY
+    #         return True
 
 
 class MatchingService:
@@ -121,21 +135,43 @@ class RideService:
         self.driver_service = driver_service
         self.match_service = match_service
         self.rides: dict[str, Ride] = {}
+        # self.riders: dict[str, Rider] = {}  # Track riders by user_id to prevent double assignment
         self.lock = Lock()
 
     def request_ride(self, rider: Rider, pickup: Location, dropoff: Location):
         with self.lock:
+            # Check if rider already has an active ride (using centralized tracking)
+            # if rider.user_id in self.riders:
+            #     existing_rider = self.riders[rider.user_id]
+            #     if existing_rider.active_ride_id:
+            #         return "Rider already in a ride"
+            #     # Update the rider instance
+            #     self.riders[rider.user_id] = rider
+            # else:
+            #     # First time seeing this rider, register them
+            #     self.riders[rider.user_id] = rider
+            
+            # Check rider's active_ride_id as additional safeguard
             if rider.active_ride_id:
                 return "Rider already in a ride"
 
             ride_id = str(uuid.uuid4())
             ride = Ride(ride_id, rider.user_id, pickup, dropoff)
 
+            # Find nearest driver (this gets a list, but doesn't reserve yet)
             driver = self.match_service.find_nearest_driver(pickup)
             if not driver:
                 return 'drivers not available'
 
+            # Atomically reserve the driver to prevent double assignment
+            # if not self.driver_service.reserve_driver(driver.driver_id):
+            #     # Driver was taken by another thread, try to find another one
+            #     driver = self.match_service.find_nearest_driver(pickup)
+            #     if not driver or not self.driver_service.reserve_driver(driver.driver_id):
+            #         return 'drivers not available'
+
             driver.driver_status = DRIVER_STATUS.BUSY
+
             ride.driver_id = driver.driver_id
             ride.ride_status = RIDE_STATUS.ASSIGNED
 
@@ -144,6 +180,8 @@ class RideService:
 
             self.rides[ride.id] = ride
             rider.active_ride_id = ride.id
+            # Update the centralized rider tracking
+            # self.riders[rider.user_id] = rider
 
             return ride
 
@@ -160,6 +198,9 @@ class RideService:
                 raise ValueError(f"Ride {ride_id} not found")
             self.rides[ride_id].ride_status = RIDE_STATUS.COMPLETED
             rider.active_ride_id = None
+            # Update centralized rider tracking
+            # if rider.user_id in self.riders:
+            #     self.riders[rider.user_id].active_ride_id = None
             self.driver_service.set_driver_status(driver.driver_id, DRIVER_STATUS.ONLINE)
 
     def cancel_ride(self, ride_id: str, rider: Rider):
@@ -172,6 +213,9 @@ class RideService:
             
             ride.ride_status = RIDE_STATUS.CANCELED
             rider.active_ride_id = None
+            # Update centralized rider tracking
+            # if rider.user_id in self.riders:
+            #     self.riders[rider.user_id].active_ride_id = None
             
             if ride.driver_id:
                 self.driver_service.set_driver_status(ride.driver_id, DRIVER_STATUS.ONLINE)
