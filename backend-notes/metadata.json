@@ -1,0 +1,24 @@
+{
+  "event_sourcing.md": {
+    "title": "Event Sourcing in Python",
+    "slug": "event-sourcing",
+    "date": "2024-01-01",
+    "excerpt": "Event Sourcing is a design pattern where the state of an application is determined by a sequence of events. Instead of storing the current state, you store all events that have occurred. The current state is reconstructed by replaying events from the beginning. Events are immutable - once created, they cannot be changed or deleted.",
+    "category": "backend"
+  },
+  "idempotency.md": {
+    "title": "Idempotency in Distributed Systems",
+    "slug": "idempotency",
+    "date": "2024-01-02",
+    "excerpt": "Idempotency means performing the same operation multiple times produces the same result as performing it once. It's critical for handling network failures, retries, and duplicate messages in distributed systems. Without it, you risk duplicate charges, multiple orders, and data corruption.",
+    "category": "backend"
+  },
+  "saga_pattern.md": {
+    "title": "Saga Pattern in Distributed Systems",
+    "slug": "saga-pattern",
+    "date": "2024-01-03",
+    "excerpt": "The Saga Pattern is a design pattern for managing distributed transactions across microservices. It breaks a transaction into a series of local transactions (one per service). If any step fails, compensating actions (rollbacks) undo completed steps. It provides eventual consistency rather than immediate consistency like ACID transactions.",
+    "category": "backend"
+  }
+}
+
