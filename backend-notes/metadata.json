@@ -19,6 +19,13 @@
     "date": "2024-01-03",
     "excerpt": "The Saga Pattern is a design pattern for managing distributed transactions across microservices. It breaks a transaction into a series of local transactions (one per service). If any step fails, compensating actions (rollbacks) undo completed steps. It provides eventual consistency rather than immediate consistency like ACID transactions.",
     "category": "backend"
+  },
+  "circuit_breaker.md": {
+    "title": "Circuit Breaker Pattern in Distributed Systems",
+    "slug": "circuit-breaker",
+    "date": "2024-01-04",
+    "excerpt": "Circuit Breaker is a design pattern that prevents cascading failures in distributed systems by stopping calls to a failing service after a threshold of failures. It provides fast failure responses instead of waiting for timeouts, and automatically attempts to recover after a cooldown period. The circuit has three states: CLOSED (normal operation), OPEN (failing fast), and HALF_OPEN (testing recovery).",
+    "category": "backend"
   }
 }
 

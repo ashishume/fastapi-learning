@@ -1,0 +1,68 @@
+# Cursor Rules for Backend Engineering Project
+
+## Project Overview
+
+This is a FastAPI microservices project with React frontend, demonstrating modern backend architecture with independent services, JWT authentication, Elasticsearch, Redis, and Docker containerization.
+
+## Backend Notes
+
+- whenever we create md files in backend-notes make sure that metadata.json is updated as per the new md file created
+
+## General Principles
+
+- Write clean, maintainable, and well-documented code
+- Follow SOLID principles and design patterns where appropriate
+- Prioritize type safety and validation
+- Use async/await for I/O operations
+- Implement proper error handling and logging
+- Write self-documenting code with clear naming
+- Keep functions small and focused (single responsibility)
+- Prefer composition over inheritance
+- Use dependency injection for testability
+
+## Python / FastAPI Conventions
+
+### Code Style
+
+- Follow PEP 8 style guide
+- Use type hints for all function parameters and return types
+- Use `dataclasses` or Pydantic models for data structures
+- Prefer `async def` for route handlers and I/O operations
+- Use `from __future__ import annotations` for forward references
+- Maximum line length: 100 characters (soft limit, 120 hard limit)
+
+### FastAPI Best Practices
+
+- Use Pydantic models for request/response validation (in `schemas/` directory)
+- Use dependency injection with `Depends()` for shared logic (auth, database sessions)
+- Use router prefix and tags for API organization
+- Use lifespan events for startup/shutdown logic (not deprecated `@app.on_event`)
+- Include comprehensive docstrings for all endpoints
+- Use HTTP status codes appropriately (200, 201, 400, 401, 403, 404, 500)
+- Return proper error responses with `HTTPException`
+
+## Anti-Patterns to Avoid
+
+- ❌ Don't put business logic in route handlers
+- ❌ Don't use global variables for state
+- ❌ Don't ignore exceptions silently
+- ❌ Don't use `print()` for logging
+- ❌ Don't commit secrets or credentials
+- ❌ Don't modify database schema without migrations
+- ❌ Don't use `any` type in TypeScript
+- ❌ Don't mix sync and async code unnecessarily
+- ❌ Don't create circular dependencies
+- ❌ Don't hardcode configuration values
+
+## Code Review Checklist
+
+- [ ] Code follows project structure and conventions
+- [ ] Type hints/TypeScript types are used correctly
+- [ ] Error handling is implemented
+- [ ] Logging is appropriate
+- [ ] Tests are included (if applicable)
+- [ ] Documentation is updated
+- [ ] No secrets or credentials in code
+- [ ] Database migrations are created (if needed)
+- [ ] API endpoints are properly documented
+- [ ] Security considerations are addressed
