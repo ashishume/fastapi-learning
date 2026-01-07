@@ -11,6 +11,7 @@ import models
 from api.v1.routes import documents
 from core.utils import auth_guard
 from api.v1.routes import workspaces
+from api.v1.routes import workspace_members
 
 
 logging.basicConfig(
@@ -79,8 +80,14 @@ app.add_middleware(
 
 # Include routers
 routes = [
-    (documents.router, "/documents", ["documents"], []),
-    (workspaces.router, "/workspaces", ["workspaces"], []),
+    (documents.router, "/documents", ["documents"], [Depends(auth_guard)]),
+    (workspaces.router, "/workspaces", ["workspaces"], [Depends(auth_guard)]),
+    (
+        workspace_members.router,
+        "/workspace-members",
+        ["workspace-members"],
+        [Depends(auth_guard)],
+    ),
 ]
 
 for router, prefix, tags, dependencies in routes:

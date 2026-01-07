@@ -11821,3 +11821,75 @@
 2025-12-19 18:08:26,316 - core.gemini_service - INFO - Initialized Gemini model: gemini-2.5-flash
 2025-12-19 18:09:04,190 - core.gemini_service - WARNING - Failed to parse JSON from Gemini response: Expecting value: line 433 column 29 (char 18952)
 2025-12-19 18:09:16,292 - core.gemini_service - INFO - Initialized Gemini model: gemini-2.5-flash
+2026-01-07 07:22:13,149 - main - INFO - Starting up application...
+2026-01-07 07:22:13,150 - main - INFO - Creating database tables...
+2026-01-07 07:22:13,260 - main - INFO - Database tables created successfully
+2026-01-07 07:22:13,263 - core.redis_client - INFO - ✅ Connected to Redis successfully
+2026-01-07 07:22:13,263 - main - INFO - Initializing Elasticsearch client...
+2026-01-07 07:22:13,284 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/ [status:200 duration:0.020s]
+2026-01-07 07:22:13,284 - core.elasticsearch_client - INFO - Successfully connected to Elasticsearch at http://elasticsearch:9200
+2026-01-07 07:22:13,284 - main - INFO - Elasticsearch client initialized successfully
+2026-01-07 07:22:13,284 - main - INFO - Setting up Elasticsearch indices...
+2026-01-07 07:22:13,294 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/movies [status:404 duration:0.009s]
+2026-01-07 07:22:13,678 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/movies [status:200 duration:0.383s]
+2026-01-07 07:22:13,678 - core.elasticsearch_client - INFO - Created Elasticsearch index: movies
+2026-01-07 07:22:13,680 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/theaters [status:404 duration:0.002s]
+2026-01-07 07:22:13,741 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/theaters [status:200 duration:0.060s]
+2026-01-07 07:22:13,741 - core.elasticsearch_client - INFO - Created Elasticsearch index: theaters
+2026-01-07 07:22:13,744 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/showings [status:404 duration:0.002s]
+2026-01-07 07:22:13,811 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/showings [status:200 duration:0.066s]
+2026-01-07 07:22:13,811 - core.elasticsearch_client - INFO - Created Elasticsearch index: showings
+2026-01-07 07:22:13,812 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:404 duration:0.001s]
+2026-01-07 07:22:13,892 - elastic_transport.transport - INFO - PUT http://elasticsearch:9200/bookings [status:200 duration:0.080s]
+2026-01-07 07:22:13,893 - core.elasticsearch_client - INFO - Created Elasticsearch index: bookings
+2026-01-07 07:22:13,893 - main - INFO - Elasticsearch indices setup complete
+2026-01-07 07:22:28,304 - main - INFO - Shutting down application...
+2026-01-07 07:22:28,305 - main - INFO - Closing database connections...
+2026-01-07 07:22:28,308 - main - INFO - Closing Redis connection...
+2026-01-07 07:22:28,311 - core.redis_client - INFO - 🧹 Redis connection closed
+2026-01-07 07:22:28,311 - main - INFO - Closing Elasticsearch client...
+2026-01-07 07:22:28,313 - core.elasticsearch_client - INFO - Elasticsearch client connection closed
+2026-01-07 07:22:28,313 - main - INFO - Application shutdown complete
+2026-01-07 07:22:45,290 - main - INFO - Starting up application...
+2026-01-07 07:22:45,290 - main - INFO - Creating database tables...
+2026-01-07 07:22:45,315 - main - INFO - Database tables created successfully
+2026-01-07 07:22:45,316 - core.redis_client - INFO - ✅ Connected to Redis successfully
+2026-01-07 07:22:45,317 - main - INFO - Initializing Elasticsearch client...
+2026-01-07 07:22:45,377 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/ [status:200 duration:0.060s]
+2026-01-07 07:22:45,377 - core.elasticsearch_client - INFO - Successfully connected to Elasticsearch at http://elasticsearch:9200
+2026-01-07 07:22:45,378 - main - INFO - Elasticsearch client initialized successfully
+2026-01-07 07:22:45,378 - main - INFO - Setting up Elasticsearch indices...
+2026-01-07 07:22:45,384 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/movies [status:200 duration:0.006s]
+2026-01-07 07:22:45,384 - core.elasticsearch_client - INFO - Elasticsearch index already exists: movies
+2026-01-07 07:22:45,386 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/theaters [status:200 duration:0.001s]
+2026-01-07 07:22:45,386 - core.elasticsearch_client - INFO - Elasticsearch index already exists: theaters
+2026-01-07 07:22:45,388 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/showings [status:200 duration:0.001s]
+2026-01-07 07:22:45,388 - core.elasticsearch_client - INFO - Elasticsearch index already exists: showings
+2026-01-07 07:22:45,389 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:200 duration:0.001s]
+2026-01-07 07:22:45,389 - core.elasticsearch_client - INFO - Elasticsearch index already exists: bookings
+2026-01-07 07:22:45,389 - main - INFO - Elasticsearch indices setup complete
+2026-01-07 07:41:31,256 - main - INFO - Shutting down application...
+2026-01-07 07:41:31,258 - main - INFO - Closing database connections...
+2026-01-07 07:41:31,269 - main - INFO - Closing Redis connection...
+2026-01-07 07:41:31,274 - core.redis_client - INFO - 🧹 Redis connection closed
+2026-01-07 07:41:31,274 - main - INFO - Closing Elasticsearch client...
+2026-01-07 07:41:31,278 - core.elasticsearch_client - INFO - Elasticsearch client connection closed
+2026-01-07 07:41:31,279 - main - INFO - Application shutdown complete
+2026-01-07 07:46:23,002 - main - INFO - Starting up application...
+2026-01-07 07:46:23,003 - main - INFO - Creating database tables...
+2026-01-07 07:46:23,067 - main - INFO - Database tables created successfully
+2026-01-07 07:46:23,071 - core.redis_client - INFO - ✅ Connected to Redis successfully
+2026-01-07 07:46:23,071 - main - INFO - Initializing Elasticsearch client...
+2026-01-07 07:46:23,232 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/ [status:200 duration:0.160s]
+2026-01-07 07:46:23,232 - core.elasticsearch_client - INFO - Successfully connected to Elasticsearch at http://elasticsearch:9200
+2026-01-07 07:46:23,232 - main - INFO - Elasticsearch client initialized successfully
+2026-01-07 07:46:23,233 - main - INFO - Setting up Elasticsearch indices...
+2026-01-07 07:46:23,243 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/movies [status:200 duration:0.010s]
+2026-01-07 07:46:23,243 - core.elasticsearch_client - INFO - Elasticsearch index already exists: movies
+2026-01-07 07:46:23,246 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/theaters [status:200 duration:0.002s]
+2026-01-07 07:46:23,246 - core.elasticsearch_client - INFO - Elasticsearch index already exists: theaters
+2026-01-07 07:46:23,248 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/showings [status:200 duration:0.002s]
+2026-01-07 07:46:23,256 - core.elasticsearch_client - INFO - Elasticsearch index already exists: showings
+2026-01-07 07:46:23,260 - elastic_transport.transport - INFO - HEAD http://elasticsearch:9200/bookings [status:200 duration:0.004s]
+2026-01-07 07:46:23,261 - core.elasticsearch_client - INFO - Elasticsearch index already exists: bookings
+2026-01-07 07:46:23,262 - main - INFO - Elasticsearch indices setup complete

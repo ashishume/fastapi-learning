@@ -127,6 +127,51 @@ services:
       - microservices-network
     restart: unless-stopped
 
+  # Document Service Database
+  document-db:
+    image: postgres:16-alpine
+    container_name: document-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: document_service
+    ports:
+      - "5438:5432"
+    volumes:
+      - document-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  # Document Service
+  document-service:
+    build:
+      context: ./document-service
+      dockerfile: Dockerfile
+    container_name: document-service
+    ports:
+      - "8001:8001"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: document_service
+      POSTGRES_HOST: document-db
+      POSTGRES_PORT: 5432
+      AUTH_SERVICE_URL: http://auth-service:8000
+      TOKEN_SECRET: dev-secret-key-change-in-production
+    depends_on:
+      document-db:
+        condition: service_healthy
+    volumes:
+      - ./document-service:/app
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
   # Food Service Database
   # food-db:
   #   image: postgres:16-alpine
@@ -226,6 +271,7 @@ services:
     depends_on:
       - auth-service
       - booking-service
+      - document-service
       # Uncomment when services are enabled:
       # - food-service
       - client
@@ -240,6 +286,7 @@ networks:
 volumes:
   auth-db-data:
   booking-db-data:
+  document-db-data:
   redis-data:
   # food-db-data:
   elasticsearch-data:
