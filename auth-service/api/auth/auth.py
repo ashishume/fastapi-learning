@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 from sqlite3 import IntegrityError
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
@@ -185,21 +186,52 @@ def update_workspace(
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     try:
-        user_id = str(request.state.user_id)
-        user = db.query(User).filter(User.id == user_id).first()
+        user_id_str = str(request.state.user_id)
+        # Convert user_id string to UUID for query
+        try:
+            user_id_uuid = UUID(user_id_str)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid user_id format: {user_id_str}",
+            )
+        user = db.query(User).filter(User.id == user_id_uuid).first()
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with id {user_id} not found",
+                detail=f"User with id {user_id_str} not found",
             )
-        user.workspace_id = workspace_id
+
+        # Convert string workspace_id to UUID
+        try:
+            workspace_uuid = UUID(workspace_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid workspace_id format: {workspace_id}",
+            )
+
+        logger.info(
+            f"Updating workspace for user {user_id_str}: "
+            f"old_workspace_id={user.workspace_id}, new_workspace_id={workspace_uuid}"
+        )
+
+        user.workspace_id = workspace_uuid
         db.commit()
         db.refresh(user)
+
+        logger.info(
+            f"Workspace updated successfully for user {user_id_str}: "
+            f"workspace_id={user.workspace_id}"
+        )
+
         return {
             "message": "Workspace updated successfully",
             "workspace_id": str(user.workspace_id),
         }
     except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to update workspace: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed {e}",

@@ -48,7 +48,15 @@ function Navbar() {
             {/* <Link to="/about" className="hover:text-blue-200 transition-colors">
               About
             </Link> */}
-            <select onChange={(e) => updateWorkspaceMutation(e.target.value)}>
+            <select
+              onChange={(e) => {
+                try {
+                  updateWorkspaceMutation(e.target.value);
+                } catch (error) {
+                  console.error("Update workspace failed:", error);
+                }
+              }}
+            >
               {workspaces?.workspaces?.map((workspace: any) => (
                 <option key={workspace.id} value={workspace.id}>
                   {workspace.name}
