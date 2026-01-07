@@ -5,9 +5,21 @@ from sqlalchemy.orm import Session
 
 
 from core.database import get_db
-from core.utils import auth_guard, create_access_token, hash_password, verify_password, verify_token
+from core.utils import (
+    auth_guard,
+    create_access_token,
+    hash_password,
+    verify_password,
+    verify_token,
+)
 from models.user import User
-from schemas.user import LoginPayload, LoginResponse, RequestPayload, ResponseModel, UserDetailResponse
+from schemas.user import (
+    LoginPayload,
+    LoginResponse,
+    RequestPayload,
+    ResponseModel,
+    UserDetailResponse,
+)
 
 
 router = APIRouter()
@@ -45,8 +57,11 @@ def signup(req_payload: RequestPayload, db: Session = Depends(get_db)) -> Respon
 
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
 def login(
-    req_payload: LoginPayload, response: Response, db: Session = Depends(get_db)
-) -> dict[str,str]:
+    req_payload: LoginPayload,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
     try:
         existing_user = db.query(User).filter(User.email == req_payload.email).first()
 
@@ -66,15 +81,24 @@ def login(
                 detail="Login credentials incorrect",
             )
 
-        access_token = create_access_token(data={"auth_user": existing_user.email,"auth_user_id": str(existing_user.id)})
+        access_token = create_access_token(
+            data={
+                "auth_user": existing_user.email,
+                "auth_user_id": str(existing_user.id),
+            }
+        )
+
+        # Determine if request is over HTTPS (check X-Forwarded-Proto header from nginx)
+        is_secure = request.headers.get("X-Forwarded-Proto", "http") == "https"
 
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=True,
+            secure=is_secure,  # Only secure over HTTPS
             samesite="lax",
-            max_age=60 * 60 * 24 * 30, # 30 days
+            path="/",
+            max_age=60 * 60 * 24 * 30,  # 30 days
         )
 
         return {
@@ -91,21 +115,46 @@ def login(
         )
 
 
-@router.get("/user_details", response_model=UserDetailResponse, status_code=status.HTTP_200_OK, dependencies=[Depends(auth_guard)])
-def get_user_details(request:Request, db: Session = Depends(get_db)) -> UserDetailResponse:
+@router.get(
+    "/user_details",
+    response_model=UserDetailResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(auth_guard)],
+)
+def get_user_details(
+    request: Request, db: Session = Depends(get_db)
+) -> UserDetailResponse:
     try:
         user_id = str(request.state.user_id)
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with id {user_id} not found",
+            )
         return UserDetailResponse(id=user.id, email=user.email, name=user.name)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed {e}"
+        )
+
 
 @router.post("/logout")
-def logout(response: Response):
+def logout(request: Request, response: Response):
     try:
-        response.delete_cookie("access_token")
+        # Determine if request is over HTTPS (check X-Forwarded-Proto header from nginx)
+        is_secure = request.headers.get("X-Forwarded-Proto", "http") == "https"
+
+        # Delete cookie with same attributes used when setting it
+        response.delete_cookie(
+            key="access_token",
+            httponly=True,
+            secure=is_secure,
+            samesite="lax",
+            path="/",
+        )
         return {"message": "Logged out successfully"}
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed {e}"
+        )

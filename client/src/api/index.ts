@@ -1,8 +1,10 @@
 import axios from "axios";
 import type { BookingSeat, LockedSeat } from "./models";
-const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL;
-const BOOKING_BASE_URL = import.meta.env.VITE_BOOKING_API_URL;
-const FOOD_BASE_URL = import.meta.env.VITE_FOOD_API_URL;
+
+// Use environment variables if set, otherwise use relative URLs through nginx
+const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL || "/auth";
+const BOOKING_BASE_URL = import.meta.env.VITE_BOOKING_API_URL || "/booking";
+const FOOD_BASE_URL = import.meta.env.VITE_FOOD_API_URL || "/food";
 
 const authApi = axios.create({
   baseURL: AUTH_BASE_URL,
@@ -34,12 +36,12 @@ const setupInterceptor = (logoutCallback: () => void) => {
 };
 
 const login = async (email: string, password: string) => {
-  const response = await authApi.post("/auth/login", { email, password });
+  const response = await authApi.post("/login", { email, password });
   return response.data;
 };
 
 const signup = async (email: string, password: string) => {
-  const response = await authApi.post("/auth/signup", { email, password });
+  const response = await authApi.post("/signup", { email, password });
   return response.data;
 };
 
@@ -87,7 +89,7 @@ const createBooking = async (booking: {
 };
 
 const getUserDetails = async () => {
-  const response = await authApi.get(`/auth/user_details`);
+  const response = await authApi.get(`/user_details`);
   return response.data;
 };
 

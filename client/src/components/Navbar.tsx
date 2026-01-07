@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getWorkspaces } from "../api/document";
+import { useQuery } from "@tanstack/react-query";
 
 function Navbar() {
   const { logout } = useAuth();
@@ -13,6 +15,12 @@ function Navbar() {
     }
   };
 
+  const { data: workspaces } = useQuery({
+    queryKey: ["workspaces"],
+    queryFn: () => getWorkspaces(),
+  });
+
+  console.log(workspaces);
   return (
     <nav className="bg-blue-600 text-white shadow-lg">
       <div className="container mx-auto px-4">
@@ -21,15 +29,19 @@ function Navbar() {
             FastAPI Learning
           </Link>
           <div className="flex space-x-6">
-            <Link
+            {/* <Link
               to="/movies"
               className="hover:text-blue-200 transition-colors"
             >
               Movies
-            </Link>
-            <Link to="/about" className="hover:text-blue-200 transition-colors">
+            </Link> */}
+            {/* <Link to="/about" className="hover:text-blue-200 transition-colors">
               About
-            </Link>
+            </Link> */}
+            <select>
+              <option value="movies">Movies</option>
+              <option value="about">About</option>
+            </select>
             <button onClick={onLogoutHandler}>Logout</button>
           </div>
         </div>

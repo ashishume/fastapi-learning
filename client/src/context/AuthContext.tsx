@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const response = await authApi.get("/auth/user_details", {
+        const response = await authApi.get("/user_details", {
           withCredentials: true,
         });
         setUser({
@@ -54,10 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await authApi.post("/auth/logout", {
-      withCredentials: true,
-    });
-    setUser(null);
+    try {
+      await authApi.post("/logout");
+      setUser(null);
+    } catch (error) {
+      // Even if the logout request fails, clear the user state
+      console.error("Logout request failed:", error);
+      setUser(null);
+    }
   };
 
   return (

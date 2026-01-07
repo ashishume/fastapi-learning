@@ -1,31 +1,25 @@
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
+// import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Movies from "./pages/Movies";
-import MovieDetails from "./pages/MovieDetails";
-import Theaters from "./pages/Theaters";
+import Home from "./pages/Home";
+// import ProtectedRoute from "./components/ProtectedRoute";
+// import Movies from "./pages/Movies";
+// import MovieDetails from "./pages/MovieDetails";
+// import Theaters from "./pages/Theaters";
 // import Showings from "./pages/Showings";
-import Seats from "./pages/Seats";
-import Booking from "./pages/Booking";
+// import Seats from "./pages/Seats";
+// import Booking from "./pages/Booking";
 
 function App() {
   return (
     <>
       <Navbar />
       <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
         <Route path="/login" element={<Login />} />
-        <Route
+        <Route path="/" element={<Home />} />
+        {/* <Route
           path="/movies"
           element={
             <ProtectedRoute>
@@ -48,7 +42,7 @@ function App() {
               <Theaters />
             </ProtectedRoute>
           }
-        />
+        /> */}
         {/* <Route
           path="/movies/:movie_id/theaters/:theater_id/showings"
           element={
@@ -57,7 +51,7 @@ function App() {
             </ProtectedRoute>
           }
         /> */}
-        <Route
+        {/* <Route
           path="/:theater_id/showings/:showing_id/seats"
           element={
             <ProtectedRoute>
@@ -72,7 +66,7 @@ function App() {
               <Booking />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
