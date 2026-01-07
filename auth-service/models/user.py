@@ -18,4 +18,5 @@ class User(Base):
     email = Column(String(255), index=True, unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)
+    workspace_id = Column(UUID(as_uuid=True), nullable=True, default=None)
     role = Column(SQLEnum(Role), nullable=False, default=Role.USER)

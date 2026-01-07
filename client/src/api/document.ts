@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { authApi } from ".";
 // Use environment variable if set, otherwise use relative URL through nginx
 const DOCUMENT_BASE_URL = import.meta.env.VITE_DOCUMENT_API_URL || "/documents";
 
@@ -13,4 +13,8 @@ const getWorkspaces = async () => {
   return response.data;
 };
 
-export { getWorkspaces };
+const updateWorkspace = async (workspaceId: string) => {
+  const response = await authApi.patch(`/workspace/${workspaceId}`);
+  return response.data;
+};
+export { getWorkspaces, updateWorkspace };

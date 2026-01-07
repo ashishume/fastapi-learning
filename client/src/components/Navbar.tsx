@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getWorkspaces } from "../api/document";
-import { useQuery } from "@tanstack/react-query";
+import { getWorkspaces, updateWorkspace } from "../api/document";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 function Navbar() {
+  const queryClient = useQueryClient();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const onLogoutHandler = async () => {
@@ -20,7 +21,16 @@ function Navbar() {
     queryFn: () => getWorkspaces(),
   });
 
-  console.log(workspaces);
+  const { mutate: updateWorkspaceMutation } = useMutation({
+    mutationFn: (workspaceId: string) => updateWorkspace(workspaceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+    onError: (error) => {
+      console.error("Update workspace failed:", error);
+    },
+  });
+
   return (
     <nav className="bg-blue-600 text-white shadow-lg">
       <div className="container mx-auto px-4">
@@ -38,9 +48,12 @@ function Navbar() {
             {/* <Link to="/about" className="hover:text-blue-200 transition-colors">
               About
             </Link> */}
-            <select>
-              <option value="movies">Movies</option>
-              <option value="about">About</option>
+            <select onChange={(e) => updateWorkspaceMutation(e.target.value)}>
+              {workspaces?.workspaces?.map((workspace: any) => (
+                <option key={workspace.id} value={workspace.id}>
+                  {workspace.name}
+                </option>
+              ))}
             </select>
             <button onClick={onLogoutHandler}>Logout</button>
           </div>

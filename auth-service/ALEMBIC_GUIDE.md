@@ -6,6 +6,7 @@ This guide covers the essential Alembic commands for managing database migration
 
 - [What is Alembic?](#what-is-alembic)
 - [Initial Setup (Already Done)](#initial-setup-already-done)
+- [Running Migrations with Docker](#running-migrations-with-docker)
 - [Common Commands](#common-commands)
 - [Creating Migrations](#creating-migrations)
 - [Applying Migrations](#applying-migrations)
@@ -30,6 +31,74 @@ Your Alembic is already configured! Here's what was set up:
 2. ✅ `alembic.ini` configured to use your database URL from environment variables
 3. ✅ `alembic/env.py` configured to import your SQLAlchemy models
 4. ✅ Initial migration created and stamped
+
+## Running Migrations with Docker
+
+⚠️ **Important:** If your auth service is running in Docker, you **must** run Alembic commands inside the Docker container. Running migrations from your local machine will fail because the database connection settings differ between Docker and local environments.
+
+### Running Migrations Inside Docker Container (Recommended)
+
+When the service is running in Docker, use `docker-compose exec` to run Alembic commands:
+
+**Apply migrations:**
+
+```bash
+docker-compose exec auth-service alembic upgrade head
+```
+
+**Check current migration version:**
+
+```bash
+docker-compose exec auth-service alembic current
+```
+
+**Create a new migration:**
+
+```bash
+docker-compose exec auth-service alembic revision --autogenerate -m "Description of changes"
+```
+
+**View migration history:**
+
+```bash
+docker-compose exec auth-service alembic history
+```
+
+**Rollback migration:**
+
+```bash
+docker-compose exec auth-service alembic downgrade -1
+```
+
+### Why This Is Necessary
+
+- **Inside Docker:** The service connects to the database using `POSTGRES_HOST=auth-db` (Docker service name) on port `5432`
+- **From Local Machine:** You would need to connect to `localhost:5435` (the mapped port), but the environment variables are configured for Docker
+
+The Docker container has the correct environment variables set up automatically by `docker-compose.yml`.
+
+### Running Migrations Locally (Alternative)
+
+If you need to run migrations from your local machine (not recommended when using Docker), you'll need to:
+
+1. Create a `.env` file in the `auth-service/` directory:
+
+```bash
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=admin
+POSTGRES_DB=auth_service
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5435
+```
+
+2. Then run Alembic commands normally:
+
+```bash
+cd auth-service
+alembic upgrade head
+```
+
+**Note:** This approach is not recommended when using Docker, as it can lead to connection issues and inconsistencies.
 
 ## Common Commands
 
@@ -250,6 +319,20 @@ alembic current
 ```
 
 ## Troubleshooting
+
+### Issue: "Can't connect to database" or "Connection refused" when running migrations
+
+**If running in Docker:**
+
+- Make sure the Docker containers are running: `docker-compose ps`
+- Ensure the database container is healthy: `docker-compose logs auth-db`
+- Run migrations inside the container: `docker-compose exec auth-service alembic upgrade head`
+
+**If running locally:**
+
+- Check that the database is accessible at `localhost:5435`
+- Verify your `.env` file has the correct connection settings
+- Ensure the Docker database container is running and port is mapped correctly
 
 ### Issue: "Target database is not up to date"
 
