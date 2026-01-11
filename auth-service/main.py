@@ -50,15 +50,17 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS is handled by nginx reverse proxy
-# If accessing the service directly (not through nginx), uncomment below:
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["http://localhost:5173", "http://localhost:80"],  # Specific origins when credentials are enabled
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+# CORS middleware - required when accessing services directly (not through nginx)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:80",
+    ],  # Specific origins when credentials are enabled
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # auth guard for all routes

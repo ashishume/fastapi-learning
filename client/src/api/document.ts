@@ -13,8 +13,4 @@ const getWorkspaces = async () => {
   return response.data;
 };
 
-const updateWorkspace = async (workspaceId: string) => {
-  const response = await authApi.patch(`/workspace/${workspaceId}`);
-  return response.data;
-};
-export { getWorkspaces, updateWorkspace };
+export { getWorkspaces };
